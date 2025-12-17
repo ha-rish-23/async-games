@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assembly Line: The Bomb</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="setupScreen" class="screen active">
+    <div class="container">
+      <h1>ASSEMBLY LINE: THE BOMB</h1>
+      <p class="subtitle">Expert reads the manual. Technician defuses the bomb. Communication is everything.</p>
+      
+      <div class="role-select">
+        <button id="hostBtn" class="role-btn">
+          <span class="role-title">TECHNICIAN</span>
+          <span class="role-desc">See the bomb, defuse modules</span>
+        </button>
+        <button id="joinBtn" class="role-btn">
+          <span class="role-title">EXPERT</span>
+          <span class="role-desc">Read manual, guide technician</span>
+        </button>
+      </div>
+
+      <div id="hostSetup" class="setup-panel" style="display: none;">
+        <h2>Create Room</h2>
+        <p>Room Code: <span id="roomCodeDisplay" class="room-code">----</span></p>
+        <button id="createRoomBtn" class="action-btn">Generate Code</button>
+        <p class="waiting" id="waitingMsg" style="display: none;">Waiting for Expert...</p>
+      </div>
+
+      <div id="joinSetup" class="setup-panel" style="display: none;">
+        <h2>Join Room</h2>
+        <input type="text" id="roomCodeInput" placeholder="Enter room code" maxlength="4">
+        <button id="joinRoomBtn" class="action-btn">Join as Expert</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="gameScreen" class="screen">
+    <div id="technicianView" class="game-view" style="display: none;">
+      <div class="hud">
+        <div class="timer-display">
+          <span class="timer-label">TIME:</span>
+          <span id="timerDisplay" class="timer-value">5:00</span>
+        </div>
+        <div class="modules-status">
+          <span class="status-label">MODULES:</span>
+          <span id="modulesDisplay" class="status-value">0/4</span>
+        </div>
+      </div>
+      
+      <div class="bomb-container">
+        <svg id="bombSvg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+          <!-- Bomb casing -->
+          <rect x="50" y="50" width="700" height="500" rx="20" fill="#2a2a2a" stroke="#ff3333" stroke-width="4"/>
+          <rect x="60" y="60" width="680" height="480" rx="15" fill="#1a1a1a" stroke="#444" stroke-width="2"/>
+          
+          <!-- Timer display -->
+          <rect x="300" y="80" width="200" height="80" rx="10" fill="#000" stroke="#ff3333" stroke-width="3"/>
+          <text id="bombTimer" x="400" y="135" font-family="Orbitron" font-size="48" fill="#ff3333" text-anchor="middle">5:00</text>
+          
+          <!-- Module 1: Wire Cutting -->
+          <g id="wireModule" class="module">
+            <rect x="80" y="200" width="320" height="180" rx="10" fill="#222" stroke="#666" stroke-width="2"/>
+            <text x="240" y="225" font-family="Roboto Mono" font-size="16" fill="#aaa" text-anchor="middle">WIRE MODULE</text>
+            <!-- Wires -->
+            <line id="wire-red" x1="120" y1="260" x2="360" y2="260" stroke="#ff0000" stroke-width="8" class="wire" data-color="red"/>
+            <line id="wire-blue" x1="120" y1="300" x2="360" y2="300" stroke="#0066ff" stroke-width="8" class="wire" data-color="blue"/>
+            <line id="wire-yellow" x1="120" y1="340" x2="360" y2="340" stroke="#ffff00" stroke-width="8" class="wire" data-color="yellow"/>
+            <circle cx="120" cy="260" r="6" fill="#666"/>
+            <circle cx="120" cy="300" r="6" fill="#666"/>
+            <circle cx="120" cy="340" r="6" fill="#666"/>
+            <circle cx="360" cy="260" r="6" fill="#666"/>
+            <circle cx="360" cy="300" r="6" fill="#666"/>
+            <circle cx="360" cy="340" r="6" fill="#666"/>
+          </g>
+
+          <!-- Module 2: Button -->
+          <g id="buttonModule" class="module">
+            <rect x="420" y="200" width="320" height="180" rx="10" fill="#222" stroke="#666" stroke-width="2"/>
+            <text x="580" y="225" font-family="Roboto Mono" font-size="16" fill="#aaa" text-anchor="middle">BUTTON MODULE</text>
+            <circle id="mainButton" cx="580" cy="310" r="50" fill="#ff0000" stroke="#660000" stroke-width="4" class="clickable"/>
+            <text id="buttonLabel" x="580" y="320" font-family="Roboto Mono" font-size="20" fill="#fff" text-anchor="middle" font-weight="bold">PRESS</text>
+          </g>
+
+          <!-- Module 3: Symbol Matching -->
+          <g id="symbolModule" class="module">
+            <rect x="80" y="400" width="320" height="160" rx="10" fill="#222" stroke="#666" stroke-width="2"/>
+            <text x="240" y="425" font-family="Roboto Mono" font-size="16" fill="#aaa" text-anchor="middle">SYMBOL MODULE</text>
+            <rect x="110" y="445" width="60" height="60" rx="5" fill="#000" stroke="#666" stroke-width="2"/>
+            <rect x="190" y="445" width="60" height="60" rx="5" fill="#000" stroke="#666" stroke-width="2"/>
+            <rect x="270" y="445" width="60" height="60" rx="5" fill="#000" stroke="#666" stroke-width="2"/>
+            <rect x="350" y="445" width="60" height="60" rx="5" fill="#000" stroke="#666" stroke-width="2"/>
+            <text id="symbol1" x="140" y="485" font-family="Arial" font-size="36" fill="#00ff00" text-anchor="middle">★</text>
+            <text id="symbol2" x="220" y="485" font-family="Arial" font-size="36" fill="#00ff00" text-anchor="middle">◆</text>
+            <text id="symbol3" x="300" y="485" font-family="Arial" font-size="36" fill="#00ff00" text-anchor="middle">●</text>
+            <text id="symbol4" x="380" y="485" font-family="Arial" font-size="36" fill="#00ff00" text-anchor="middle">✦</text>
+          </g>
+
+          <!-- Module 4: Keypad -->
+          <g id="keypadModule" class="module">
+            <rect x="420" y="400" width="320" height="160" rx="10" fill="#222" stroke="#666" stroke-width="2"/>
+            <text x="580" y="425" font-family="Roboto Mono" font-size="16" fill="#aaa" text-anchor="middle">KEYPAD MODULE</text>
+            <rect x="480" y="445" width="200" height="40" rx="5" fill="#000" stroke="#666" stroke-width="2"/>
+            <text id="keypadDisplay" x="580" y="472" font-family="Orbitron" font-size="24" fill="#00ff00" text-anchor="middle">____</text>
+            <g id="keypadButtons">
+              <circle cx="490" cy="510" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="1"/>
+              <text x="490" y="515" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">1</text>
+              <circle cx="530" cy="510" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="2"/>
+              <text x="530" y="515" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">2</text>
+              <circle cx="570" cy="510" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="3"/>
+              <text x="570" y="515" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">3</text>
+              <circle cx="610" cy="510" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="4"/>
+              <text x="610" y="515" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">4</text>
+              <circle cx="650" cy="510" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="5"/>
+              <text x="650" y="515" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">5</text>
+              <circle cx="490" cy="540" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="6"/>
+              <text x="490" y="545" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">6</text>
+              <circle cx="530" cy="540" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="7"/>
+              <text x="530" y="545" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">7</text>
+              <circle cx="570" cy="540" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="8"/>
+              <text x="570" y="545" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">8</text>
+              <circle cx="610" cy="540" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="9"/>
+              <text x="610" y="545" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">9</text>
+              <circle cx="650" cy="540" r="15" fill="#333" stroke="#666" stroke-width="2" class="keypad-btn clickable" data-num="0"/>
+              <text x="650" y="545" font-family="Roboto Mono" font-size="14" fill="#fff" text-anchor="middle">0</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div id="expertView" class="game-view" style="display: none;">
+      <div class="manual-container">
+        <h1 class="manual-title">BOMB DEFUSAL MANUAL</h1>
+        <div class="manual-timer">
+          <span>TIME REMAINING:</span>
+          <span id="expertTimer" class="timer-value">5:00</span>
+        </div>
+
+        <div class="manual-section">
+          <h2>MODULE 1: WIRE CUTTING</h2>
+          <div class="manual-content">
+            <p><strong>Instructions:</strong> Cut ONE wire based on the rules below.</p>
+            <table class="wire-table">
+              <tr>
+                <th>If you see...</th>
+                <th>Then cut...</th>
+              </tr>
+              <tr>
+                <td>Red wire at the top</td>
+                <td>The <span class="wire-color red">RED</span> wire</td>
+              </tr>
+              <tr>
+                <td>Blue wire in the middle</td>
+                <td>The <span class="wire-color blue">BLUE</span> wire</td>
+              </tr>
+              <tr>
+                <td>Yellow wire at the bottom</td>
+                <td>The <span class="wire-color yellow">YELLOW</span> wire</td>
+              </tr>
+              <tr>
+                <td>No red wire</td>
+                <td>The <span class="wire-color blue">BLUE</span> wire</td>
+              </tr>
+              <tr>
+                <td>Otherwise</td>
+                <td>The last wire (bottom)</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="manual-section">
+          <h2>MODULE 2: BUTTON</h2>
+          <div class="manual-content">
+            <p><strong>Instructions:</strong> The button will say either "PRESS" or "HOLD".</p>
+            <table class="button-table">
+              <tr>
+                <th>Button Label</th>
+                <th>Action</th>
+              </tr>
+              <tr>
+                <td><strong>PRESS</strong></td>
+                <td>Click the button once and release immediately</td>
+              </tr>
+              <tr>
+                <td><strong>HOLD</strong></td>
+                <td>Click and hold the button for 3 seconds, then release</td>
+              </tr>
+            </table>
+            <p class="note">⚠️ The button color doesn't matter. Only read the label.</p>
+          </div>
+        </div>
+
+        <div class="manual-section">
+          <h2>MODULE 3: SYMBOL MATCHING</h2>
+          <div class="manual-content">
+            <p><strong>Instructions:</strong> The technician will see 4 symbols. Tell them the correct order to press them.</p>
+            <p><strong>Correct order (left to right):</strong></p>
+            <div class="symbol-order">
+              <span class="symbol-item">1st: ★ (Star)</span>
+              <span class="symbol-item">2nd: ● (Circle)</span>
+              <span class="symbol-item">3rd: ◆ (Diamond)</span>
+              <span class="symbol-item">4th: ✦ (Spark)</span>
+            </div>
+            <p class="note">⚠️ They must press them in THIS order, not the order shown on the bomb.</p>
+          </div>
+        </div>
+
+        <div class="manual-section">
+          <h2>MODULE 4: KEYPAD</h2>
+          <div class="manual-content">
+            <p><strong>Instructions:</strong> The technician must enter a 4-digit code.</p>
+            <p><strong>The code is:</strong> <span class="code-display" id="manualCode">----</span></p>
+            <p class="note">⚠️ This code is generated when the game starts. Read it carefully to the technician.</p>
+          </div>
+        </div>
+
+        <div class="manual-footer">
+          <p>⏱️ You have 5 minutes to defuse all 4 modules. Good luck!</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="resultScreen" class="result-overlay" style="display: none;">
+      <div class="result-content">
+        <h1 id="resultTitle"></h1>
+        <p id="resultMessage"></p>
+        <button id="playAgainBtn" class="action-btn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
