@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Art Heist | Double Blind Games</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>THE ART HEIST</h1>
+      <a href="../../index.html" class="back-link">← Back to Menu</a>
+    </header>
+
+    <div id="setup">
+      <div class="setup-panel">
+        <h2>Host Game</h2>
+        <button id="hostBtn" class="btn">Create Room</button>
+        <div id="hostWrap" style="display:none;">
+          <p>Room Code: <span id="roomCode" class="room-code">----</span></p>
+          <p id="hostStatus">Initializing...</p>
+        </div>
+      </div>
+
+      <div class="setup-panel">
+        <h2>Join Game</h2>
+        <button id="clientBtn" class="btn">Join Room</button>
+        <div id="clientWrap" style="display:none;">
+          <input type="text" id="codeInput" placeholder="Enter 4-letter code" maxlength="4">
+          <button id="joinBtn" class="btn">Connect</button>
+          <p id="clientStatus"></p>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameArea" style="display:none;">
+      <div id="gameStatus" class="status-text"></div>
+      
+      <div id="gameInfo">
+        <div id="timer">TIME: <span id="timeDisplay">3:00</span></div>
+        <div id="alarmStatus">STATUS: <span id="alarmText">CLEAR</span></div>
+      </div>
+
+      <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+      <div id="controls">
+        <p id="controlsText"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

@@ -40,6 +40,9 @@
   let detectedBlips = [];
   const radarRange = 250;
   let obstaclesInitialized = false;
+  let subTrail = []; // Movement trail
+  let startX = 400; // Starting X position
+  let distanceTraveled = 0;
 
   // Generate obstacles
   function generateObstacles(){
@@ -165,77 +168,131 @@
     ctx.save();
     ctx.translate(canvas.width/2, canvas.height/2);
 
-    // Draw detected blips
-    detectedBlips.forEach(blip => {
-      const relX = blip.x - sub.x;
-      const relY = blip.y - sub.y;
-      const scale = 0.25; // Adjusted scale for visibility
+    const scale = 0.35; // Bigger view range
 
-      ctx.globalAlpha = blip.fade;
-      
-      // Draw blip with glow
-      if(blip.type === 'goal'){
-        ctx.fillStyle = '#0ff';
-        ctx.shadowColor = '#0ff';
-        ctx.shadowBlur = 15;
-      } else if(blip.type === 'mine'){
-        ctx.fillStyle = '#f00';
-        ctx.shadowColor = '#f00';
-        ctx.shadowBlur = 10;
-      } else {
-        ctx.fillStyle = '#0f0';
-        ctx.shadowColor = '#0f0';
-        ctx.shadowBlur = 8;
-      }
-      
+    // Draw submarine trail (shows movement)
+    if(subTrail.length > 1){
+      // Trail line
+      ctx.strokeStyle = 'rgba(0,255,255,0.4)';
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(relX * scale, relY * scale, blip.r * scale * 1.5, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo((subTrail[0].x - sub.x) * scale, (subTrail[0].y - sub.y) * scale);
+      for(let i = 1; i < subTrail.length; i++){
+        ctx.lineTo((subTrail[i].x - sub.x) * scale, (subTrail[i].y - sub.y) * scale);
+      }
+      ctx.stroke();
       
-      ctx.shadowBlur = 0;
+      // Trail dots
+      ctx.fillStyle = 'rgba(0,255,255,0.6)';
+      for(let i = 0; i < subTrail.length; i += 5){
+        const tx = (subTrail[i].x - sub.x) * scale;
+        const ty = (subTrail[i].y - sub.y) * scale;
+        ctx.beginPath();
+        ctx.arc(tx, ty, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
-      // Label
-      if(blip.fade > 0.3){
-        ctx.font = '10px "Share Tech Mono"';
-        ctx.fillStyle = blip.type === 'goal' ? '#0ff' : blip.type === 'mine' ? '#f00' : '#0f0';
-        ctx.textAlign = 'center';
-        const label = blip.type === 'goal' ? 'GOAL' : blip.type === 'mine' ? 'MINE' : 'ROCK';
-        ctx.fillText(label, relX * scale, relY * scale - blip.r * scale * 2);
+    // Draw ALL obstacles directly (no sweep needed)
+    obstacles.forEach(obs => {
+      const relX = (obs.x - sub.x) * scale;
+      const relY = (obs.y - sub.y) * scale;
+      
+      // Only draw if on screen (with some margin)
+      if(Math.abs(relX) < canvas.width/2 + 100 && Math.abs(relY) < canvas.height/2 + 100){
+        ctx.save();
+        
+        if(obs.type === 'goal'){
+          // Goal - cyan pulsing circle
+          ctx.fillStyle = '#0ff';
+          ctx.shadowColor = '#0ff';
+          ctx.shadowBlur = 20;
+          ctx.beginPath();
+          ctx.arc(relX, relY, obs.r * scale * (1 + Math.sin(Date.now() * 0.003) * 0.2), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          
+          ctx.font = 'bold 14px "Share Tech Mono"';
+          ctx.fillStyle = '#0ff';
+          ctx.textAlign = 'center';
+          ctx.fillText('GOAL', relX, relY - obs.r * scale - 10);
+          
+        } else if(obs.type === 'mine'){
+          // Mine - red danger with spikes
+          ctx.fillStyle = '#f00';
+          ctx.shadowColor = '#f00';
+          ctx.shadowBlur = 15;
+          ctx.beginPath();
+          ctx.arc(relX, relY, obs.r * scale, 0, Math.PI * 2);
+          ctx.fill();
+          
+          // Spikes
+          ctx.strokeStyle = '#f00';
+          ctx.lineWidth = 2;
+          for(let a = 0; a < Math.PI * 2; a += Math.PI / 4){
+            ctx.beginPath();
+            ctx.moveTo(relX + Math.cos(a) * obs.r * scale, relY + Math.sin(a) * obs.r * scale);
+            ctx.lineTo(relX + Math.cos(a) * obs.r * scale * 1.5, relY + Math.sin(a) * obs.r * scale * 1.5);
+            ctx.stroke();
+          }
+          ctx.shadowBlur = 0;
+          
+          ctx.font = '10px "Share Tech Mono"';
+          ctx.fillStyle = '#f00';
+          ctx.textAlign = 'center';
+          ctx.fillText('MINE', relX, relY - obs.r * scale - 10);
+          
+        } else {
+          // Rock - green obstacle
+          ctx.fillStyle = '#0a0';
+          ctx.shadowColor = '#0f0';
+          ctx.shadowBlur = 8;
+          ctx.beginPath();
+          ctx.arc(relX, relY, obs.r * scale, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          
+          ctx.strokeStyle = '#0f0';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(relX, relY, obs.r * scale, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          ctx.font = '9px "Share Tech Mono"';
+          ctx.fillStyle = '#0f0';
+          ctx.textAlign = 'center';
+          ctx.fillText('ROCK', relX, relY - obs.r * scale - 8);
+        }
+        
+        ctx.restore();
       }
     });
 
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur = 0;
-
-    // Submarine (center)
+    // Submarine (center) - larger and more visible
     ctx.fillStyle = '#0ff';
     ctx.shadowColor = '#0ff';
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 20;
     ctx.beginPath();
-    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+    ctx.arc(0, 0, 12, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillRect(-15, -4, 30, 8);
+    
+    // Sub body
+    ctx.fillRect(-20, -6, 40, 12);
+    
+    // Direction indicator (speed)
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(15, -3, sub.speed * 3, 6);
+    
     ctx.shadowBlur = 0;
 
-    // Radar sweep circle
-    ctx.strokeStyle = 'rgba(0,255,0,0.4)';
+    // Range circle
+    ctx.strokeStyle = 'rgba(0,255,255,0.3)';
     ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
     ctx.beginPath();
-    ctx.arc(0, 0, radarRange * 0.25, 0, Math.PI * 2);
+    ctx.arc(0, 0, 200, 0, Math.PI * 2);
     ctx.stroke();
-
-    // Sweep line
-    ctx.strokeStyle = 'rgba(0,255,0,0.9)';
-    ctx.shadowColor = '#0f0';
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    const sweepX = Math.cos(radarAngle) * radarRange * 0.25;
-    const sweepY = Math.sin(radarAngle) * radarRange * 0.25;
-    ctx.lineTo(sweepX, sweepY);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+    ctx.setLineDash([]);
 
     ctx.restore();
 
@@ -244,16 +301,32 @@
     ctx.fillStyle = '#0f0';
     ctx.textAlign = 'left';
     ctx.fillText('SUB POSITION: ' + sub.x.toFixed(0) + ', ' + sub.y.toFixed(0), 10, 20);
-    ctx.fillText('DEPTH: ' + sub.depth.toFixed(0) + 'm | OXYGEN: ' + sub.oxygen.toFixed(0) + '%', 10, 40);
-    ctx.fillText('OBSTACLES: ' + obstacles.length + ' | BLIPS: ' + detectedBlips.length, 10, 60);
-    ctx.fillText('GUIDE CAPTAIN TO GOAL (CYAN)', 10, canvas.height - 10);
+    ctx.fillText('DISTANCE: ' + (sub.x - startX).toFixed(0) + 'm | SPEED: ' + sub.speed.toFixed(1) + 'm/s', 10, 40);
+    ctx.fillText('DEPTH: ' + sub.depth.toFixed(0) + 'm | OXYGEN: ' + sub.oxygen.toFixed(0) + '%', 10, 60);
+    
+    if(obstacles.length === 0){
+      ctx.fillStyle = '#ff0';
+      ctx.fillText('⚠️ WAITING FOR OBSTACLE DATA...', 10, 80);
+    } else {
+      ctx.fillStyle = '#0ff';
+      ctx.fillText('OBSTACLES: ' + obstacles.length + ' (CYAN=GOAL, RED=MINES, GREEN=ROCKS)', 10, 80);
+    }
+    
+    ctx.fillStyle = '#0f0';
+    ctx.textAlign = 'center';
+    ctx.fillText('GUIDE CAPTAIN: AVOID RED/GREEN, REACH CYAN', canvas.width/2, canvas.height - 10);
   }
 
   function gameLoop(){
     if(!sub.alive || goalReached) return;
 
     // Update submarine position
+    const oldX = sub.x;
     sub.x += sub.speed;
+    
+    if(Math.floor(oldX / 10) !== Math.floor(sub.x / 10)){
+      console.log('Sub moving:', oldX.toFixed(1), '->', sub.x.toFixed(1), 'speed:', sub.speed);
+    }
 
     // Update oxygen
     sub.oxygen -= 0.02;
@@ -362,7 +435,10 @@
   }
 
   function clientLoop(){
-    radarLoop();
+    // Add to trail
+    subTrail.push({x: sub.x, y: sub.y});
+    if(subTrail.length > 100) subTrail.shift(); // Keep last 100 positions
+    
     drawRadarView();
     animationId = requestAnimationFrame(clientLoop);
   }
@@ -408,12 +484,19 @@
 
       // Start game loop immediately
       gameTimer = setInterval(gameLoop, 1000/30);
+      console.log('Game loop started! Speed:', sub.speed, 'Position:', sub.x);
       hostLoop();
 
       const checkConn = setInterval(()=>{
         if(nm.conn && nm.conn.open){
           hostStatus.textContent='✅ Radar operator connected!';
           hostStatus.style.color='#0f0';
+          // Send initial state with obstacles
+          nm.sendData('state', {
+            sub: sub,
+            obstacles: obstacles
+          });
+          console.log('Host sending initial obstacles:', obstacles.length);
           clearInterval(checkConn);
         }
       }, 300);
@@ -436,15 +519,25 @@
 
       nm.onData(packet=>{
         if(packet.type==='state'){
+          const oldX = sub.x;
           sub.x = packet.payload.sub.x;
           sub.y = packet.payload.sub.y;
           sub.depth = packet.payload.sub.depth;
           sub.speed = packet.payload.sub.speed;
           sub.oxygen = packet.payload.sub.oxygen;
           sub.alive = packet.payload.sub.alive;
-          // Update obstacles from host
-          if(packet.payload.obstacles && packet.payload.obstacles.length > 0){
+          
+          if(Math.abs(oldX - sub.x) > 1){
+            console.log('Client received position update:', oldX.toFixed(1), '->', sub.x.toFixed(1));
+          }
+          
+          // Always update obstacles from host
+          if(packet.payload.obstacles){
             obstacles = packet.payload.obstacles;
+            if(obstacles.length > 0 && !obstaclesInitialized){
+              console.log('Received obstacles:', obstacles.length);
+              obstaclesInitialized = true;
+            }
           }
         } else if(packet.type==='game'){
           if(packet.payload.type === 'win'){

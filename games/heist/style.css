@@ -1,0 +1,204 @@
+/* The Art Heist - Specific Styles */
+
+body {
+  background: linear-gradient(135deg, #0a1128 0%, #001f54 100%);
+}
+
+.btn {
+  background: linear-gradient(135deg, #00d4ff 0%, #0088ff 100%);
+  border: 2px solid #00d4ff;
+  color: #001428;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 12px 24px;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+}
+
+.btn:disabled {
+  background: #555;
+  border-color: #777;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+input[type="text"] {
+  background: rgba(0, 31, 84, 0.6);
+  border: 2px solid #00d4ff;
+  color: #00d4ff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  padding: 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.btn:hover {
+  background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+}
+
+.btn:disabled {
+  background: #555;
+  border-color: #777;
+  color: #999;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+input[type="text"] {
+  background: rgba(0, 31, 84, 0.6);
+  border: 2px solid #00d4ff;
+  color: #00d4ff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  padding: 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+#gameArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+#gameInfo {
+  display: flex;
+  gap: 40px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  color: #00d4ff;
+  text-shadow: 0 0 10px #00d4ff;
+}
+
+#timer {
+  font-weight: bold;
+}
+
+#alarmStatus {
+  font-weight: bold;
+}
+
+#alarmText.alarm-triggered {
+  color: #ff0040;
+  text-shadow: 0 0 15px #ff0040;
+  animation: alarm-pulse 0.5s infinite;
+}
+
+@keyframes alarm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+canvas {
+  border: 3px solid #00d4ff;
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+  background: #000;
+}
+
+#controls {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: #00d4ff;
+  text-align: center;
+  padding: 10px;
+  background: rgba(0, 31, 84, 0.6);
+  border: 1px solid #00d4ff;
+  border-radius: 5px;
+  max-width: 600px;
+}
+
+#controlsText {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.status-text {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Blueprint grid styling for hacker view */
+.blueprint-grid {
+  stroke: rgba(0, 212, 255, 0.3);
+  stroke-width: 1;
+}
+
+.blueprint-wall {
+  stroke: #00d4ff;
+  stroke-width: 3;
+  fill: none;
+}
+
+.laser-beam {
+  stroke: #ff0040;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 8px #ff0040);
+}
+
+.camera-cone {
+  fill: rgba(255, 255, 0, 0.2);
+  stroke: #ffff00;
+  stroke-width: 2;
+}
+
+.thief-marker {
+  fill: #00d4ff;
+  filter: drop-shadow(0 0 10px #00d4ff);
+}
+
+.painting-marker {
+  fill: #ffd700;
+  filter: drop-shadow(0 0 15px #ffd700);
+}
+
+/* First-person noir styling for thief */
+.noir-wall {
+  stroke: rgba(100, 100, 100, 0.4);
+  stroke-width: 2;
+  fill: none;
+}
+
+.painting-glow {
+  fill: #ffd700;
+  filter: drop-shadow(0 0 30px #ffd700);
+}
