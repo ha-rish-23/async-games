@@ -152,6 +152,71 @@ body {
   font-weight: 600;
 }
 
+/* Frustration Meter */
+.frustration-bar {
+  display: inline-block;
+  width: 150px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid #f5576c;
+  border-radius: 10px;
+  position: relative;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+#frustrationFill, #frustrationFillChandler {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #fbbf24 0%, #f97316 50%, #dc2626 100%);
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 8px;
+}
+
+/* PIVOT Button */
+.pivot-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  color: white;
+  border: none;
+  padding: 20px 60px;
+  font-size: 1.8rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 800;
+  margin: 20px;
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.5);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pivot-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.7);
+}
+
+.pivot-btn:active {
+  transform: scale(0.95);
+}
+
+.pivot-btn.active {
+  background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+  animation: pulse 0.5s ease;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.pivot-sync {
+  color: #fbbf24;
+  font-weight: 700;
+  font-size: 1.1rem;
+  min-height: 30px;
+}
+
 /* Canvas */
 canvas {
   border: 3px solid #667eea;

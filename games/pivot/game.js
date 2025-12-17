@@ -1,46 +1,51 @@
-// PIVOT! - Physics-based Couch Moving Game
-// Navigator sees top-down, Mover sees first-person
+// PIVOT! - F.R.I.E.N.D.S. Couch Scene Recreation
+// Ross (Top View) vs Chandler (Bottom View) moving couch up L-shaped stairwell
 
 const nm = new window.NetworkManager();
 const audio = new window.AudioManager();
 
 // Matter.js setup
 const Engine = Matter.Engine;
-const Render = Matter.Render;
 const World = Matter.World;
 const Bodies = Matter.Bodies;
 const Body = Matter.Body;
-const Vector = Matter.Vector;
 
 let engine;
 let world;
-let couch; // The main physics body
-let player; // Mover's position and rotation
-let walls = [];
+let couch; // The physics body (2 connected parts: front + back)
+let couchFront, couchBack;
 
 const gameState = {
   timeElapsed: 0,
-  moveCount: 0,
+  frustration: 0, // 0-100
   gameActive: false,
   timerInterval: null,
-  level: 1
+  pivotActive: false,
+  pivotTimeRemaining: 0,
+  lastRossPivot: 0,
+  lastChandlerPivot: 0,
+  couchBroken: false
 };
 
-let isHost = false; // Host = Navigator, Client = Mover
+let isRoss = false; // true = Ross (host), false = Chandler (client)
 
-// Room layout (in physics units, 1 unit = 10 pixels)
-const ROOM_WIDTH = 80; // 800px
-const ROOM_HEIGHT = 60; // 600px
+// L-shaped stairwell layout (physics units, 1 unit = 10px)
+const STAIR_WIDTH = 80;
+const STAIR_HEIGHT = 60;
 const WALL_THICKNESS = 2;
+const BANISTER_WIDTH = 1;
 
-// Couch dimensions (typical couch: ~7ft x 3ft, scaled down)
-const COUCH_WIDTH = 8;
-const COUCH_HEIGHT = 4;
+// Couch dimensions
+const COUCH_LENGTH = 12; // Long couch
+const COUCH_WIDTH = 4;
 
-// Goal position (doorway)
-const GOAL = { x: 75, y: 30, width: 2, height: 10 };
+// Goal: get couch to top of stairs
+const GOAL_Y = 5;
 
-// Setup event listeners
+let walls = [];
+let banister;
+
+// Setup
 document.getElementById('hostBtn').addEventListener('click', () => {
   document.querySelector('.role-select').style.display = 'none';
   document.getElementById('hostSetup').style.display = 'block';
@@ -52,7 +57,7 @@ document.getElementById('joinBtn').addEventListener('click', () => {
 });
 
 document.getElementById('createRoomBtn').addEventListener('click', async () => {
-  isHost = true;
+  isRoss = true;
   
   try {
     const roomCode = await nm.startHost();
@@ -70,13 +75,12 @@ document.getElementById('createRoomBtn').addEventListener('click', async () => {
     }, 100);
     
   } catch (err) {
-    console.error('Failed to create room:', err);
     alert('Failed to create room: ' + err.message);
   }
 });
 
 document.getElementById('joinRoomBtn').addEventListener('click', async () => {
-  isHost = false;
+  isRoss = false;
   const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
   
   if (roomCode.length !== 4) {
@@ -89,156 +93,216 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     nm.onData((data) => onDataReceived(data));
     onPeerConnected();
   } catch (err) {
-    console.error('Failed to join room:', err);
     alert('Failed to join room: ' + err.message);
   }
 });
 
-document.getElementById('playAgainBtn').addEventListener('click', () => {
+document.getElementById('playAgainBtn')?.addEventListener('click', () => {
   location.reload();
 });
 
-// Chat functionality
-document.getElementById('sendChatBtn')?.addEventListener('click', sendChat);
-document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendChat();
+// PIVOT button handlers
+document.getElementById('rossPivotBtn')?.addEventListener('click', () => {
+  pressPivot(true);
 });
 
-function sendChat() {
-  const input = document.getElementById('chatInput');
-  if (!input) return;
+document.getElementById('chandlerPivotBtn')?.addEventListener('click', () => {
+  pressPivot(false);
+});
+
+function pressPivot(isRossPress) {
+  const now = Date.now();
   
-  const message = input.value.trim();
-  if (message.length === 0) return;
+  if (isRoss && isRossPress) {
+    gameState.lastRossPivot = now;
+    nm.sendData('pivot', { player: 'ross', time: now });
+    document.getElementById('pivotSync').textContent = 'Waiting for Chandler...';
+    audio.click();
+  } else if (!isRoss && !isRossPress) {
+    gameState.lastChandlerPivot = now;
+    nm.sendData('pivot', { player: 'chandler', time: now });
+    document.getElementById('pivotSyncChandler').textContent = 'Waiting for Ross...';
+    audio.click();
+  }
   
-  nm.sendData('chat', { message });
-  displayChat(message, true);
-  input.value = '';
+  checkPivotSync();
 }
 
-function displayChat(message, isSelf = false) {
-  const container = document.getElementById('chatMessages') || document.getElementById('chatDisplay');
-  if (!container) return;
+function checkPivotSync() {
+  const timeDiff = Math.abs(gameState.lastRossPivot - gameState.lastChandlerPivot);
   
-  const msgEl = document.createElement('div');
-  msgEl.className = 'chat-message' + (isSelf ? ' navigator' : '');
-  msgEl.textContent = (isSelf ? 'You: ' : 'Navigator: ') + message;
-  container.appendChild(msgEl);
-  container.scrollTop = container.scrollHeight;
+  if (timeDiff < 500 && gameState.lastRossPivot > 0 && gameState.lastChandlerPivot > 0) {
+    // SUCCESS! Both pressed within 0.5s
+    activatePivotMode();
+  }
 }
 
-// Network callbacks
+function activatePivotMode() {
+  gameState.pivotActive = true;
+  gameState.pivotTimeRemaining = 3000; // 3 seconds
+  
+  audio.win();
+  
+  // Visual feedback
+  document.getElementById('rossPivotBtn')?.classList.add('active');
+  document.getElementById('chandlerPivotBtn')?.classList.add('active');
+  
+  document.getElementById('pivotSync').textContent = '✓ PIVOT MODE ACTIVE!';
+  document.getElementById('pivotSyncChandler').textContent = '✓ PIVOT MODE ACTIVE!';
+  
+  // Make couch more flexible (reduce friction, increase angular freedom)
+  if (isRoss) {
+    Body.set(couch, { friction: 0.2, frictionAir: 0.05 });
+  }
+  
+  // Countdown
+  const pivotInterval = setInterval(() => {
+    gameState.pivotTimeRemaining -= 100;
+    
+    if (gameState.pivotTimeRemaining <= 0) {
+      clearInterval(pivotInterval);
+      deactivatePivotMode();
+    } else {
+      const secs = (gameState.pivotTimeRemaining / 1000).toFixed(1);
+      document.getElementById('pivotSync').textContent = `PIVOT MODE: ${secs}s`;
+      document.getElementById('pivotSyncChandler').textContent = `PIVOT MODE: ${secs}s`;
+    }
+  }, 100);
+}
+
+function deactivatePivotMode() {
+  gameState.pivotActive = false;
+  gameState.lastRossPivot = 0;
+  gameState.lastChandlerPivot = 0;
+  
+  document.getElementById('rossPivotBtn')?.classList.remove('active');
+  document.getElementById('chandlerPivotBtn')?.classList.remove('active');
+  
+  document.getElementById('pivotSync').textContent = '';
+  document.getElementById('pivotSyncChandler').textContent = '';
+  
+  if (isRoss) {
+    Body.set(couch, { friction: 0.8, frictionAir: 0.1 });
+  }
+}
+
+// Network
 function onPeerConnected() {
-  console.log('Peer connected!');
-  
-  if (isHost) {
-    // Navigator view
+  if (isRoss) {
     document.getElementById('setupScreen').classList.remove('active');
     document.getElementById('gameScreen').style.display = 'block';
-    document.getElementById('navigatorView').style.display = 'flex';
+    document.getElementById('rossView').style.display = 'flex';
     initializePhysics();
     startGame();
-    renderTopDown();
   } else {
-    // Mover view
     document.getElementById('setupScreen').classList.remove('active');
     document.getElementById('gameScreen').style.display = 'block';
-    document.getElementById('moverView').style.display = 'flex';
-    // Wait for physics state from host
+    document.getElementById('chandlerView').style.display = 'flex';
   }
 }
 
 function onDataReceived(data) {
-  console.log('Received:', data.type);
-  
   if (data.type === 'physicsState') {
-    // Mover receives state updates
-    updateMoverView(data.payload);
-  } else if (data.type === 'playerInput') {
-    // Navigator receives Mover's input
-    handlePlayerInput(data.payload);
-  } else if (data.type === 'chat') {
-    displayChat(data.payload.message, false);
+    updateChandlerView(data.payload);
+  } else if (data.type === 'rossInput') {
+    handleRossInput(data.payload);
+  } else if (data.type === 'chandlerInput') {
+    handleChandlerInput(data.payload);
+  } else if (data.type === 'pivot') {
+    if (data.payload.player === 'ross') {
+      gameState.lastRossPivot = data.payload.time;
+    } else {
+      gameState.lastChandlerPivot = data.payload.time;
+    }
+    checkPivotSync();
   } else if (data.type === 'gameEnd') {
     showResult(data.payload.success, data.payload.message);
   }
 }
 
-// Physics Initialization (Host only)
+// Physics (Ross only)
 function initializePhysics() {
   engine = Engine.create({
-    gravity: { x: 0, y: 0 } // Top-down, no gravity
+    gravity: { x: 0, y: 0 }
   });
   world = engine.world;
   
-  // Create walls
-  const topWall = Bodies.rectangle(ROOM_WIDTH/2, WALL_THICKNESS/2, ROOM_WIDTH, WALL_THICKNESS, { isStatic: true });
-  const bottomWall = Bodies.rectangle(ROOM_WIDTH/2, ROOM_HEIGHT - WALL_THICKNESS/2, ROOM_WIDTH, WALL_THICKNESS, { isStatic: true });
-  const leftWall = Bodies.rectangle(WALL_THICKNESS/2, ROOM_HEIGHT/2, WALL_THICKNESS, ROOM_HEIGHT, { isStatic: true });
+  // L-shaped stairwell walls
+  // Bottom horizontal section
+  const bottomWall = Bodies.rectangle(STAIR_WIDTH/2, STAIR_HEIGHT - WALL_THICKNESS/2, STAIR_WIDTH, WALL_THICKNESS, { isStatic: true });
+  const leftWall = Bodies.rectangle(WALL_THICKNESS/2, STAIR_HEIGHT/2, WALL_THICKNESS, STAIR_HEIGHT, { isStatic: true });
   
-  // Right wall with doorway gap
-  const rightWallTop = Bodies.rectangle(ROOM_WIDTH - WALL_THICKNESS/2, 15, WALL_THICKNESS, 30, { isStatic: true });
-  const rightWallBottom = Bodies.rectangle(ROOM_WIDTH - WALL_THICKNESS/2, 45, WALL_THICKNESS, 30, { isStatic: true });
+  // Right wall (lower section before turn)
+  const rightWallLower = Bodies.rectangle(STAIR_WIDTH - WALL_THICKNESS/2, 40, WALL_THICKNESS, 40, { isStatic: true });
   
-  walls = [topWall, bottomWall, leftWall, rightWallTop, rightWallBottom];
+  // Corner turn walls
+  const cornerWallTop = Bodies.rectangle(40, 20, 40, WALL_THICKNESS, { isStatic: true });
+  const cornerWallRight = Bodies.rectangle(60, 10, WALL_THICKNESS, 20, { isStatic: true });
   
-  // Add obstacles (narrow hallway, corners, etc.)
-  const obstacle1 = Bodies.rectangle(40, 20, 15, 3, { isStatic: true });
-  const obstacle2 = Bodies.rectangle(40, 40, 15, 3, { isStatic: true });
-  const obstacle3 = Bodies.rectangle(25, 30, 3, 15, { isStatic: true });
+  // Top section
+  const topWall = Bodies.rectangle(30, WALL_THICKNESS/2, 60, WALL_THICKNESS, { isStatic: true });
   
-  walls.push(obstacle1, obstacle2, obstacle3);
+  // Banister (the annoying obstacle)
+  banister = Bodies.rectangle(45, 30, BANISTER_WIDTH, 30, { isStatic: true });
   
-  // Create couch (rectangular physics body)
-  couch = Bodies.rectangle(15, 30, COUCH_WIDTH, COUCH_HEIGHT, {
+  walls = [bottomWall, leftWall, rightWallLower, cornerWallTop, cornerWallRight, topWall, banister];
+  
+  // Create couch (single rigid body, long rectangle)
+  couch = Bodies.rectangle(10, 50, COUCH_LENGTH, COUCH_WIDTH, {
     density: 0.04,
     friction: 0.8,
     frictionAir: 0.1,
-    restitution: 0.3,
+    restitution: 0.1,
     inertia: Infinity // Prevent unrealistic spinning
   });
   
-  // Player (Mover) position
-  player = {
-    x: 10,
-    y: 30,
-    angle: 0 // Facing direction in radians
-  };
-  
   World.add(world, [...walls, couch]);
-  
-  console.log('Physics initialized:', { couch: couch.position, player });
 }
 
-// Start game timer
+// Game loop
 function startGame() {
   gameState.gameActive = true;
   gameState.timeElapsed = 0;
-  gameState.moveCount = 0;
+  gameState.frustration = 0;
   
   gameState.timerInterval = setInterval(() => {
+    if (!isRoss) return;
+    
     gameState.timeElapsed++;
     updateTimerDisplay();
     
-    if (isHost) {
-      // Run physics simulation
-      Engine.update(engine, 16.67); // ~60fps
-      
-      // Check win condition
-      const couchPos = couch.position;
-      if (couchPos.x > GOAL.x && Math.abs(couchPos.y - GOAL.y) < GOAL.height/2) {
-        endGame(true, `Success! Moved the couch in ${formatTime(gameState.timeElapsed)} with ${gameState.moveCount} moves!`);
-      }
-      
-      // Send state to mover
-      sendPhysicsState();
-      renderTopDown();
+    // Run physics
+    Engine.update(engine, 16.67);
+    
+    // Check if couch is stuck (velocity near zero for too long)
+    const vel = couch.velocity;
+    const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
+    
+    if (speed < 0.1 && !gameState.pivotActive) {
+      gameState.frustration += 0.5;
+    } else if (speed > 0.1) {
+      gameState.frustration = Math.max(0, gameState.frustration - 0.2);
     }
-  }, 16.67); // ~60fps
+    
+    // Check win condition
+    if (couch.position.y < GOAL_Y) {
+      endGame(true, `SUCCESS! You got the couch upstairs in ${formatTime(gameState.timeElapsed)}!`);
+    }
+    
+    // Check frustration limit
+    if (gameState.frustration >= 100 && !gameState.couchBroken) {
+      gameState.couchBroken = true;
+      endGame(false, 'The couch broke in half from frustration! "PIVOT! PIVOT! PIVOT!"');
+    }
+    
+    updateFrustrationMeter();
+    sendPhysicsState();
+    renderRossView();
+  }, 16.67);
 }
 
 function sendPhysicsState() {
-  if (!isHost) return;
+  if (!isRoss) return;
   
   nm.sendData('physicsState', {
     couch: {
@@ -246,72 +310,110 @@ function sendPhysicsState() {
       y: couch.position.y,
       angle: couch.angle
     },
-    player: player,
     time: gameState.timeElapsed,
-    moves: gameState.moveCount
+    frustration: gameState.frustration
   });
 }
 
-// Handle Mover input (runs on host)
-function handlePlayerInput(input) {
-  if (!gameState.gameActive || !isHost) return;
-  
-  const { key } = input;
-  const force = 0.002; // Push force
-  const rotSpeed = 0.05;
-  
-  // Update player position/rotation
-  if (key === 'w' || key === 'arrowup') {
-    player.x += Math.cos(player.angle) * 0.5;
-    player.y += Math.sin(player.angle) * 0.5;
-  } else if (key === 's' || key === 'arrowdown') {
-    player.x -= Math.cos(player.angle) * 0.5;
-    player.y -= Math.sin(player.angle) * 0.5;
-  } else if (key === 'a' || key === 'arrowleft') {
-    player.x += Math.cos(player.angle - Math.PI/2) * 0.5;
-    player.y += Math.sin(player.angle - Math.PI/2) * 0.5;
-  } else if (key === 'd' || key === 'arrowright') {
-    player.x += Math.cos(player.angle + Math.PI/2) * 0.5;
-    player.y += Math.sin(player.angle + Math.PI/2) * 0.5;
-  } else if (key === 'q') {
-    player.angle -= rotSpeed;
-  } else if (key === 'e') {
-    player.angle += rotSpeed;
-  }
-  
-  // Keep player in bounds
-  player.x = Math.max(2, Math.min(ROOM_WIDTH - 2, player.x));
-  player.y = Math.max(2, Math.min(ROOM_HEIGHT - 2, player.y));
-  
-  // Apply force to couch if close enough
-  const dx = couch.position.x - player.x;
-  const dy = couch.position.y - player.y;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  
-  if (dist < 10) { // Within push range
-    const pushAngle = Math.atan2(dy, dx);
-    const fx = Math.cos(pushAngle) * force;
-    const fy = Math.sin(pushAngle) * force;
+// Ross controls (front of couch - pull and rotate)
+if (isRoss) {
+  document.addEventListener('keydown', (e) => {
+    if (!gameState.gameActive) return;
     
-    Body.applyForce(couch, couch.position, { x: fx, y: fy });
-    gameState.moveCount++;
-    audio.click();
+    const key = e.key.toLowerCase();
+    const force = gameState.pivotActive ? 0.004 : 0.002;
+    const torque = gameState.pivotActive ? 0.003 : 0.001;
+    
+    // WASD = move front of couch
+    // Q/E = rotate
+    if (key === 'w') {
+      Body.applyForce(couch, { x: couch.position.x + Math.cos(couch.angle) * 6, y: couch.position.y + Math.sin(couch.angle) * 6 }, 
+        { x: Math.cos(couch.angle) * force, y: Math.sin(couch.angle) * force });
+      audio.blip();
+    } else if (key === 's') {
+      Body.applyForce(couch, { x: couch.position.x + Math.cos(couch.angle) * 6, y: couch.position.y + Math.sin(couch.angle) * 6 }, 
+        { x: -Math.cos(couch.angle) * force, y: -Math.sin(couch.angle) * force });
+      audio.blip();
+    } else if (key === 'a') {
+      Body.applyForce(couch, { x: couch.position.x + Math.cos(couch.angle) * 6, y: couch.position.y + Math.sin(couch.angle) * 6 }, 
+        { x: Math.cos(couch.angle - Math.PI/2) * force, y: Math.sin(couch.angle - Math.PI/2) * force });
+      audio.blip();
+    } else if (key === 'd') {
+      Body.applyForce(couch, { x: couch.position.x + Math.cos(couch.angle) * 6, y: couch.position.y + Math.sin(couch.angle) * 6 }, 
+        { x: Math.cos(couch.angle + Math.PI/2) * force, y: Math.sin(couch.angle + Math.PI/2) * force });
+      audio.blip();
+    } else if (key === 'q') {
+      Body.setAngularVelocity(couch, -torque * 10);
+      audio.blip();
+    } else if (key === 'e') {
+      Body.setAngularVelocity(couch, torque * 10);
+      audio.blip();
+    }
+  });
+}
+
+// Chandler controls (back of couch - push and lift)
+if (!isRoss) {
+  document.addEventListener('keydown', (e) => {
+    if (!gameState.gameActive) return;
+    
+    const key = e.key.toLowerCase();
+    if (['w', 'a', 's', 'd', 'q', 'e'].includes(key)) {
+      nm.sendData('chandlerInput', { key });
+      audio.blip();
+      e.preventDefault();
+    }
+  });
+}
+
+function handleRossInput(input) {
+  // Processed locally, no need
+}
+
+function handleChandlerInput(input) {
+  if (!isRoss || !gameState.gameActive) return;
+  
+  const key = input.key;
+  const force = gameState.pivotActive ? 0.004 : 0.002;
+  
+  // Chandler pushes BACK of couch
+  // WASD = push/pull back
+  // Q/E = lift/lower (vertical force)
+  if (key === 'w') {
+    Body.applyForce(couch, { x: couch.position.x - Math.cos(couch.angle) * 6, y: couch.position.y - Math.sin(couch.angle) * 6 }, 
+      { x: Math.cos(couch.angle) * force, y: Math.sin(couch.angle) * force });
+  } else if (key === 's') {
+    Body.applyForce(couch, { x: couch.position.x - Math.cos(couch.angle) * 6, y: couch.position.y - Math.sin(couch.angle) * 6 }, 
+      { x: -Math.cos(couch.angle) * force, y: -Math.sin(couch.angle) * force });
+  } else if (key === 'a') {
+    Body.applyForce(couch, { x: couch.position.x - Math.cos(couch.angle) * 6, y: couch.position.y - Math.sin(couch.angle) * 6 }, 
+      { x: Math.cos(couch.angle - Math.PI/2) * force, y: Math.sin(couch.angle - Math.PI/2) * force });
+  } else if (key === 'd') {
+    Body.applyForce(couch, { x: couch.position.x - Math.cos(couch.angle) * 6, y: couch.position.y - Math.sin(couch.angle) * 6 }, 
+      { x: Math.cos(couch.angle + Math.PI/2) * force, y: Math.sin(couch.angle + Math.PI/2) * force });
+  } else if (key === 'q') {
+    // Lift (upward force)
+    Body.applyForce(couch, { x: couch.position.x - Math.cos(couch.angle) * 6, y: couch.position.y - Math.sin(couch.angle) * 6 }, 
+      { x: 0, y: -force * 2 });
+  } else if (key === 'e') {
+    // Lower (downward force)
+    Body.applyForce(couch, { x: couch.position.x - Math.cos(couch.angle) * 6, y: couch.position.y - Math.sin(couch.angle) * 6 }, 
+      { x: 0, y: force * 2 });
   }
 }
 
-// Render top-down view (Navigator)
-function renderTopDown() {
-  const canvas = document.getElementById('topDownCanvas');
+// Render Ross's view (top-down)
+function renderRossView() {
+  const canvas = document.getElementById('topCanvas');
   if (!canvas) return;
   
   const ctx = canvas.getContext('2d');
-  const scale = 10; // 1 physics unit = 10 pixels
+  const scale = 10;
   
-  // Clear
   ctx.fillStyle = '#1a1a2e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  // Draw walls
+  // Draw stairwell walls
   ctx.fillStyle = '#667eea';
   walls.forEach(wall => {
     const w = wall.bounds.max.x - wall.bounds.min.x;
@@ -324,232 +426,136 @@ function renderTopDown() {
     );
   });
   
-  // Draw goal (doorway)
+  // Draw banister highlight
+  ctx.fillStyle = '#f97316';
+  const bw = banister.bounds.max.x - banister.bounds.min.x;
+  const bh = banister.bounds.max.y - banister.bounds.min.y;
+  ctx.fillRect(
+    (banister.position.x - bw/2) * scale,
+    (banister.position.y - bh/2) * scale,
+    bw * scale,
+    bh * scale
+  );
+  
+  // Draw goal area
   ctx.fillStyle = '#4ade80';
-  ctx.fillRect(GOAL.x * scale, (GOAL.y - GOAL.height/2) * scale, GOAL.width * scale, GOAL.height * scale);
-  ctx.font = '14px Arial';
-  ctx.fillText('EXIT', (GOAL.x - 5) * scale, (GOAL.y - GOAL.height/2 - 1) * scale);
+  ctx.fillRect(0, 0, 600, GOAL_Y * scale);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('GOAL', 300, 30);
   
   // Draw couch
   ctx.save();
   ctx.translate(couch.position.x * scale, couch.position.y * scale);
   ctx.rotate(couch.angle);
-  ctx.fillStyle = '#f5576c';
-  ctx.fillRect(-COUCH_WIDTH/2 * scale, -COUCH_HEIGHT/2 * scale, COUCH_WIDTH * scale, COUCH_HEIGHT * scale);
+  
+  if (gameState.couchBroken) {
+    // Broken in half
+    ctx.fillStyle = '#8b4f5c';
+    ctx.fillRect(-COUCH_LENGTH/4 * scale, -COUCH_WIDTH/2 * scale, COUCH_LENGTH/2 * scale, COUCH_WIDTH * scale);
+    ctx.fillRect(COUCH_LENGTH/4 * scale, -COUCH_WIDTH/2 * scale, COUCH_LENGTH/2 * scale, COUCH_WIDTH * scale);
+  } else {
+    ctx.fillStyle = gameState.pivotActive ? '#4ade80' : '#f5576c';
+    ctx.fillRect(-COUCH_LENGTH/2 * scale, -COUCH_WIDTH/2 * scale, COUCH_LENGTH * scale, COUCH_WIDTH * scale);
+    
+    // Front marker
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(COUCH_LENGTH/2 * scale - 10, -COUCH_WIDTH/2 * scale, 5, COUCH_WIDTH * scale);
+  }
+  
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 2;
-  ctx.strokeRect(-COUCH_WIDTH/2 * scale, -COUCH_HEIGHT/2 * scale, COUCH_WIDTH * scale, COUCH_HEIGHT * scale);
+  ctx.strokeRect(-COUCH_LENGTH/2 * scale, -COUCH_WIDTH/2 * scale, COUCH_LENGTH * scale, COUCH_WIDTH * scale);
   ctx.restore();
   
-  // Draw player (Mover) position
-  ctx.fillStyle = '#fbbf24';
-  ctx.beginPath();
-  ctx.arc(player.x * scale, player.y * scale, 5, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Draw player facing direction
-  ctx.strokeStyle = '#fbbf24';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(player.x * scale, player.y * scale);
-  ctx.lineTo(
-    (player.x + Math.cos(player.angle) * 3) * scale,
-    (player.y + Math.sin(player.angle) * 3) * scale
-  );
-  ctx.stroke();
-  
-  // Distance to goal indicator
-  const distToGoal = Math.sqrt(
-    Math.pow(couch.position.x - GOAL.x, 2) + 
-    Math.pow(couch.position.y - GOAL.y, 2)
-  );
+  // Instructions
   ctx.fillStyle = '#a8b2d1';
   ctx.font = '16px Arial';
-  ctx.fillText(`Distance to goal: ${distToGoal.toFixed(1)}m`, 10, 20);
+  ctx.textAlign = 'left';
+  ctx.fillText('You are at the FRONT (yellow end)', 10, canvas.height - 10);
 }
 
-// Update Mover's first-person view
-let moverState = null;
+// Render Chandler's view (bottom-up, inverted)
+let chandlerState = null;
 
-function updateMoverView(state) {
-  moverState = state;
+function updateChandlerView(state) {
+  chandlerState = state;
   
-  // Update time display
-  document.getElementById('timeDisplayMover').textContent = `Time: ${formatTime(state.time)}`;
+  document.getElementById('timeDisplayChandler').textContent = `Time: ${formatTime(state.time)}`;
+  gameState.frustration = state.frustration;
+  updateFrustrationMeter();
   
-  renderFirstPerson();
+  renderChandlerView();
 }
 
-// Render first-person view (Mover)
-function renderFirstPerson() {
-  const canvas = document.getElementById('firstPersonCanvas');
-  if (!canvas || !moverState) return;
+function renderChandlerView() {
+  const canvas = document.getElementById('bottomCanvas');
+  if (!canvas || !chandlerState) return;
   
   const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
+  const scale = 10;
   
-  // Clear with floor/ceiling gradient
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, '#1a1a2e'); // Ceiling
-  grad.addColorStop(0.5, '#2d1b4e'); // Horizon
-  grad.addColorStop(1, '#1a1a2e'); // Floor
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
+  // INVERTED VIEW (flipped 180°)
+  ctx.save();
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(Math.PI); // 180° rotation
+  ctx.translate(-canvas.width / 2, -canvas.height / 2);
   
-  // Draw floor grid for depth perception
-  ctx.strokeStyle = 'rgba(102, 126, 234, 0.2)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i < 10; i++) {
-    const y = h/2 + i * 30;
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(w, y);
-    ctx.stroke();
-  }
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   
-  const { couch: couchState, player: playerState } = moverState;
-  
-  // Calculate relative position
-  const dx = couchState.x - playerState.x;
-  const dy = couchState.y - playerState.y;
-  const dist = Math.sqrt(dx*dx + dy*dy);
-  
-  // Rotate to player's perspective
-  const angle = Math.atan2(dy, dx) - playerState.angle;
-  
-  // IMPROVED 3D COUCH VIEW
-  if (dist < 30 && dist > 0.1) {
-    const perspective = Math.min(200 / Math.max(dist, 1), 150);
-    const screenX = w/2 + Math.sin(angle) * perspective * 3;
-    const screenY = h/2 + 50 - (perspective * 0.5); // Vertical position based on distance
-    
-    const couchWidth = COUCH_WIDTH * perspective;
-    const couchDepth = COUCH_HEIGHT * perspective;
-    
-    ctx.save();
-    ctx.translate(screenX, screenY);
-    
-    const relativeAngle = couchState.angle - playerState.angle;
-    ctx.rotate(relativeAngle);
-    
-    // 3D-ish couch with depth
-    // Back cushion (darker)
-    ctx.fillStyle = '#5a3a47';
-    ctx.fillRect(-couchWidth/2 - 5, -couchDepth/2 - 15, couchWidth + 10, 15);
-    
-    // Seat (main color)
-    ctx.fillStyle = '#8b4f5c';
-    ctx.fillRect(-couchWidth/2, -couchDepth/2, couchWidth, couchDepth);
-    
-    // Armrests (3D effect)
-    ctx.fillStyle = '#6b3a47';
-    ctx.fillRect(-couchWidth/2 - 8, -couchDepth/2, 8, couchDepth);
-    ctx.fillRect(couchWidth/2, -couchDepth/2, 8, couchDepth);
-    
-    // Outline
-    ctx.strokeStyle = '#f5576c';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(-couchWidth/2, -couchDepth/2, couchWidth, couchDepth);
-    
-    // Shadow for depth
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-    ctx.fillRect(-couchWidth/2 - 2, couchDepth/2, couchWidth + 4, 8);
-    
-    ctx.restore();
-    
-    // Distance indicator
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 24px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${dist.toFixed(1)}m`, w/2, 50);
-  } else if (dist >= 30) {
-    // Too far away
-    ctx.fillStyle = '#f5576c';
-    ctx.font = 'bold 28px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('COUCH IS TOO FAR!', w/2, h/2);
-    ctx.font = '18px Arial';
-    ctx.fillStyle = '#a8b2d1';
-    ctx.fillText('Ask Navigator for directions', w/2, h/2 + 40);
-  } else if (dist <= 0.1) {
-    // Too close
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 28px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('TOO CLOSE!', w/2, h/2);
-    ctx.font = '18px Arial';
-    ctx.fillText('Back up a bit', w/2, h/2 + 40);
-  }
-  
-  // Mini-map in corner
-  const miniSize = 150;
-  const miniX = w - miniSize - 20;
-  const miniY = 20;
-  const scale = miniSize / ROOM_WIDTH;
-  
-  // Mini-map background
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(miniX, miniY, miniSize, miniSize * ROOM_HEIGHT / ROOM_WIDTH);
-  
-  // Mini-map couch
-  ctx.fillStyle = '#f5576c';
-  ctx.fillRect(
-    miniX + couchState.x * scale - 2,
-    miniY + couchState.y * scale - 2,
-    4, 4
-  );
-  
-  // Mini-map player
-  ctx.fillStyle = '#fbbf24';
-  ctx.beginPath();
-  ctx.arc(
-    miniX + playerState.x * scale,
-    miniY + playerState.y * scale,
-    3, 0, Math.PI * 2
-  );
-  ctx.fill();
-  
-  // Mini-map goal
-  ctx.fillStyle = '#4ade80';
-  ctx.fillRect(
-    miniX + GOAL.x * scale,
-    miniY + (GOAL.y - GOAL.height/2) * scale,
-    2,
-    GOAL.height * scale
-  );
-  
-  // Instructions
+  // Draw stairwell walls (simplified, Chandler can't see full layout)
   ctx.fillStyle = '#667eea';
-  ctx.font = 'bold 20px Arial';
-  ctx.textAlign = 'left';
-  ctx.fillText('WASD = Move & Push', 20, 30);
-  ctx.fillText('Q/E = Rotate View', 20, 55);
+  ctx.fillRect(0, 0, 20, canvas.height); // Left wall
+  ctx.fillRect(canvas.width - 20, 0, 20, canvas.height); // Right wall
+  ctx.fillRect(0, canvas.height - 20, canvas.width, 20); // Floor
   
-  ctx.textAlign = 'center';
+  // Draw couch
+  const couchX = chandlerState.couch.x * scale;
+  const couchY = chandlerState.couch.y * scale;
+  
+  ctx.save();
+  ctx.translate(couchX, couchY);
+  ctx.rotate(chandlerState.couch.angle);
+  
+  ctx.fillStyle = gameState.pivotActive ? '#4ade80' : '#f5576c';
+  ctx.fillRect(-COUCH_LENGTH/2 * scale, -COUCH_WIDTH/2 * scale, COUCH_LENGTH * scale, COUCH_WIDTH * scale);
+  
+  // Back marker (where Chandler is)
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillRect(-COUCH_LENGTH/2 * scale, -COUCH_WIDTH/2 * scale, 5, COUCH_WIDTH * scale);
+  
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(-COUCH_LENGTH/2 * scale, -COUCH_WIDTH/2 * scale, COUCH_LENGTH * scale, COUCH_WIDTH * scale);
+  ctx.restore();
+  
+  ctx.restore(); // End inverted view
+  
+  // Instructions (not inverted)
+  ctx.fillStyle = '#a8b2d1';
+  ctx.font = '16px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('You are at the BACK (yellow end)', 10, canvas.height - 10);
+  ctx.fillText('[View is upside-down from Ross!]', 10, canvas.height - 30);
 }
 
-// Mover controls (send to host)
-if (!isHost) {
-  document.addEventListener('keydown', (e) => {
-    if (!gameState.gameActive && !moverState) return;
-    
-    const key = e.key.toLowerCase();
-    if (['w', 'a', 's', 'd', 'q', 'e', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(key)) {
-      nm.sendData('playerInput', { key });
-      e.preventDefault();
-    }
-  });
-}
-
-// Timer display
+// UI Updates
 function updateTimerDisplay() {
   const timeStr = formatTime(gameState.timeElapsed);
   const timeEl = document.getElementById('timeDisplay');
-  const movesEl = document.getElementById('movesDisplay');
-  
   if (timeEl) timeEl.textContent = `Time: ${timeStr}`;
-  if (movesEl) movesEl.textContent = `Moves: ${gameState.moveCount}`;
+}
+
+function updateFrustrationMeter() {
+  const fill = Math.min(100, Math.max(0, gameState.frustration));
+  
+  const fillEl = document.getElementById('frustrationFill');
+  const fillElC = document.getElementById('frustrationFillChandler');
+  
+  if (fillEl) fillEl.style.width = fill + '%';
+  if (fillElC) fillElC.style.width = fill + '%';
 }
 
 function formatTime(seconds) {
@@ -567,22 +573,23 @@ function endGame(success, message) {
   
   if (success) {
     audio.win();
+  } else {
+    audio.explosion();
   }
   
-  // Send result to both players
   nm.sendData('gameEnd', { success, message });
   showResult(success, message);
 }
 
 function showResult(success, message) {
-  document.getElementById('navigatorView')?.style.setProperty('display', 'none');
-  document.getElementById('moverView')?.style.setProperty('display', 'none');
+  document.getElementById('rossView')?.style.setProperty('display', 'none');
+  document.getElementById('chandlerView')?.style.setProperty('display', 'none');
   
   const resultScreen = document.getElementById('resultScreen');
   resultScreen.style.display = 'block';
   
-  document.getElementById('resultTitle').textContent = success ? '🎉 SUCCESS!' : '❌ Failed';
+  document.getElementById('resultTitle').textContent = success ? '✅ SUCCESS!' : '💔 COUCH BROKEN!';
   document.getElementById('resultMessage').textContent = message;
   document.getElementById('finalTime').textContent = `Time: ${formatTime(gameState.timeElapsed)}`;
-  document.getElementById('finalMoves').textContent = `Moves: ${gameState.moveCount}`;
+  document.getElementById('finalMoves').textContent = success ? 'You did it!' : 'PIVOT! PIVOT! PIVOT!';
 }
