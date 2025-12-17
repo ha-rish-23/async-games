@@ -279,10 +279,7 @@ function startGame() {
   gameState.gameActive = true;
   gameState.timeRemaining = GAME_DURATION;
   
-  // Start clock ticking sound
-  audio.startTicking();
-  
-  // Start timer
+  // Start timer first
   gameState.timerInterval = setInterval(() => {
     gameState.timeRemaining--;
     updateTimerDisplay();
@@ -297,6 +294,13 @@ function startGame() {
       endGame(false, 'Time ran out! The bomb exploded!');
     }
   }, 1000);
+  
+  // Start clock ticking sound (non-blocking)
+  try {
+    audio.startTicking();
+  } catch(e) {
+    console.warn('Audio not available:', e);
+  }
   
   // Wire module
   document.querySelectorAll('.wire').forEach(wire => {
