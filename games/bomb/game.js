@@ -33,7 +33,12 @@ document.getElementById('joinBtn').addEventListener('click', () => {
 document.getElementById('createRoomBtn').addEventListener('click', () => {
   isHost = true;
   const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-  document.getElementById('roomCodeDisplay').textContent = roomCode;
+  console.log('Generated room code:', roomCode);
+  
+  const display = document.getElementById('roomCodeDisplay');
+  display.textContent = roomCode;
+  console.log('Display updated to:', display.textContent);
+  
   document.getElementById('createRoomBtn').style.display = 'none';
   document.getElementById('waitingMsg').style.display = 'block';
   
