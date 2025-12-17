@@ -48,8 +48,14 @@ document.getElementById('createRoomBtn').addEventListener('click', () => {
 document.getElementById('joinRoomBtn').addEventListener('click', () => {
   isHost = false;
   const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+  console.log('Attempting to join room:', roomCode);
+  
   if (roomCode.length === 4) {
+    console.log('Initializing network as client...');
     initNetwork(roomCode, false, onPeerConnected, onDataReceived);
+  } else {
+    console.error('Invalid room code length:', roomCode.length);
+    alert('Please enter a 4-character room code');
   }
 });
 
