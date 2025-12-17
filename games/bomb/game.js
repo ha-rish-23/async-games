@@ -116,6 +116,9 @@ function onDataReceived(data) {
     updateExpertView(data.payload);
   } else if (data.type === 'gameInit') {
     updateManualCode(data.payload.code);
+    if (data.payload.wireColors) {
+      updateWireColors(data.payload.wireColors);
+    }
   } else if (data.type === 'gameEnd') {
     showResult(data.payload.success, data.payload.message);
   }
@@ -123,9 +126,33 @@ function onDataReceived(data) {
 
 // Initialize game (host only)
 function initializeGame() {
-  // Randomize wire puzzle (simple: always one of the three)
-  const wires = ['red', 'blue', 'yellow'];
-  gameState.modules.wire.correctWire = wires[Math.floor(Math.random() * 3)];
+  // Randomize wire colors and positions
+  const availableColors = ['red', 'blue', 'yellow'];
+  const shuffledColors = availableColors.sort(() => Math.random() - 0.5);
+  
+  // Determine correct wire based on position rules
+  // Rule: If red is at top -> cut red, if blue is in middle -> cut blue, if yellow is at bottom -> cut yellow
+  // Otherwise, cut the last one (bottom)
+  let correctWire = shuffledColors[2]; // Default to bottom wire
+  
+  if (shuffledColors[0] === 'red') {
+    correctWire = 'red';
+  } else if (shuffledColors[1] === 'blue') {
+    correctWire = 'blue';
+  } else if (shuffledColors[2] === 'yellow') {
+    correctWire = 'yellow';
+  }
+  
+  gameState.modules.wire.correctWire = correctWire;
+  gameState.modules.wire.wireColors = shuffledColors; // Store for rendering
+  
+  // Update SVG wire colors
+  document.getElementById('wire-red').setAttribute('stroke', getColorHex(shuffledColors[0]));
+  document.getElementById('wire-red').setAttribute('data-color', shuffledColors[0]);
+  document.getElementById('wire-blue').setAttribute('stroke', getColorHex(shuffledColors[1]));
+  document.getElementById('wire-blue').setAttribute('data-color', shuffledColors[1]);
+  document.getElementById('wire-yellow').setAttribute('stroke', getColorHex(shuffledColors[2]));
+  document.getElementById('wire-yellow').setAttribute('data-color', shuffledColors[2]);
   
   // Randomize button label
   gameState.modules.button.label = Math.random() > 0.5 ? 'PRESS' : 'HOLD';
@@ -136,10 +163,22 @@ function initializeGame() {
   
   // Send initial data to expert
   nm.sendData('gameInit', {
-    code: gameState.modules.keypad.code
+    code: gameState.modules.keypad.code,
+    wireColors: shuffledColors // Send wire positions to Expert
   });
   
   console.log('Game initialized:', gameState.modules);
+  console.log('Wire colors (top to bottom):', shuffledColors);
+  console.log('Correct wire to cut:', correctWire);
+}
+
+function getColorHex(colorName) {
+  const colors = {
+    'red': '#ff0000',
+    'blue': '#0066ff',
+    'yellow': '#ffff00'
+  };
+  return colors[colorName];
 }
 
 function startGame() {
@@ -358,4 +397,40 @@ function updateExpertView(state) {
 
 function updateManualCode(code) {
   document.getElementById('manualCode').textContent = code;
+}
+
+function updateWireColors(wireColors) {
+  // Update the manual with actual wire positions
+  const wireTable = document.querySelector('.wire-table');
+  const colorNames = {
+    'red': 'RED',
+    'blue': 'BLUE', 
+    'yellow': 'YELLOW'
+  };
+  
+  wireTable.innerHTML = `
+    <tr>
+      <th>Wire Position</th>
+      <th>Color</th>
+      <th>Action</th>
+    </tr>
+    <tr>
+      <td>Top wire</td>
+      <td><span class="wire-color ${wireColors[0]}">${colorNames[wireColors[0]]}</span></td>
+      <td>Cut this if it's RED</td>
+    </tr>
+    <tr>
+      <td>Middle wire</td>
+      <td><span class="wire-color ${wireColors[1]}">${colorNames[wireColors[1]]}</span></td>
+      <td>Cut this if it's BLUE</td>
+    </tr>
+    <tr>
+      <td>Bottom wire</td>
+      <td><span class="wire-color ${wireColors[2]}">${colorNames[wireColors[2]]}</span></td>
+      <td>Cut this if it's YELLOW</td>
+    </tr>
+    <tr>
+      <td colspan="3"><strong>Otherwise:</strong> Cut the bottom wire</td>
+    </tr>
+  `;
 }
