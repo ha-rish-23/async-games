@@ -389,61 +389,144 @@ function renderFirstPerson() {
   const w = canvas.width;
   const h = canvas.height;
   
-  // Clear with dark background
-  ctx.fillStyle = '#0f0f1e';
+  // Clear with floor/ceiling gradient
+  const grad = ctx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, '#1a1a2e'); // Ceiling
+  grad.addColorStop(0.5, '#2d1b4e'); // Horizon
+  grad.addColorStop(1, '#1a1a2e'); // Floor
+  ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
   
-  // Simple 3D projection: show couch edges relative to player
+  // Draw floor grid for depth perception
+  ctx.strokeStyle = 'rgba(102, 126, 234, 0.2)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 10; i++) {
+    const y = h/2 + i * 30;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+  
   const { couch: couchState, player: playerState } = moverState;
   
   // Calculate relative position
   const dx = couchState.x - playerState.x;
   const dy = couchState.y - playerState.y;
+  const dist = Math.sqrt(dx*dx + dy*dy);
   
   // Rotate to player's perspective
   const angle = Math.atan2(dy, dx) - playerState.angle;
-  const dist = Math.sqrt(dx*dx + dy*dy);
   
-  // Project onto screen (simple perspective)
-  if (dist < 20 && dist > 0.5) { // Only render if visible
-    const screenDist = 400 / dist; // Perspective scale
-    const screenX = w/2 + Math.sin(angle) * screenDist * 2;
-    const screenY = h/2;
+  // IMPROVED 3D COUCH VIEW
+  if (dist < 30 && dist > 0.1) {
+    const perspective = Math.min(200 / Math.max(dist, 1), 150);
+    const screenX = w/2 + Math.sin(angle) * perspective * 3;
+    const screenY = h/2 + 50 - (perspective * 0.5); // Vertical position based on distance
     
-    const couchWidth = COUCH_WIDTH * screenDist;
-    const couchHeight = COUCH_HEIGHT * screenDist;
+    const couchWidth = COUCH_WIDTH * perspective;
+    const couchDepth = COUCH_HEIGHT * perspective;
     
-    // Draw couch as rectangle
     ctx.save();
     ctx.translate(screenX, screenY);
-    ctx.rotate(couchState.angle - playerState.angle);
     
-    // Couch body
+    const relativeAngle = couchState.angle - playerState.angle;
+    ctx.rotate(relativeAngle);
+    
+    // 3D-ish couch with depth
+    // Back cushion (darker)
+    ctx.fillStyle = '#5a3a47';
+    ctx.fillRect(-couchWidth/2 - 5, -couchDepth/2 - 15, couchWidth + 10, 15);
+    
+    // Seat (main color)
     ctx.fillStyle = '#8b4f5c';
-    ctx.fillRect(-couchWidth/2, -couchHeight/2, couchWidth, couchHeight);
+    ctx.fillRect(-couchWidth/2, -couchDepth/2, couchWidth, couchDepth);
     
-    // Couch outline
+    // Armrests (3D effect)
+    ctx.fillStyle = '#6b3a47';
+    ctx.fillRect(-couchWidth/2 - 8, -couchDepth/2, 8, couchDepth);
+    ctx.fillRect(couchWidth/2, -couchDepth/2, 8, couchDepth);
+    
+    // Outline
     ctx.strokeStyle = '#f5576c';
     ctx.lineWidth = 3;
-    ctx.strokeRect(-couchWidth/2, -couchHeight/2, couchWidth, couchHeight);
+    ctx.strokeRect(-couchWidth/2, -couchDepth/2, couchWidth, couchDepth);
+    
+    // Shadow for depth
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(-couchWidth/2 - 2, couchDepth/2, couchWidth + 4, 8);
     
     ctx.restore();
+    
+    // Distance indicator
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${dist.toFixed(1)}m`, w/2, 50);
+  } else if (dist >= 30) {
+    // Too far away
+    ctx.fillStyle = '#f5576c';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('COUCH IS TOO FAR!', w/2, h/2);
+    ctx.font = '18px Arial';
+    ctx.fillStyle = '#a8b2d1';
+    ctx.fillText('Ask Navigator for directions', w/2, h/2 + 40);
+  } else if (dist <= 0.1) {
+    // Too close
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('TOO CLOSE!', w/2, h/2);
+    ctx.font = '18px Arial';
+    ctx.fillText('Back up a bit', w/2, h/2 + 40);
   }
   
-  // Draw UI overlay
-  ctx.fillStyle = '#667eea';
-  ctx.font = '20px Arial';
-  ctx.fillText('Push the couch!', 20, 30);
+  // Mini-map in corner
+  const miniSize = 150;
+  const miniX = w - miniSize - 20;
+  const miniY = 20;
+  const scale = miniSize / ROOM_WIDTH;
   
-  // Crosshair
-  ctx.strokeStyle = '#fbbf24';
-  ctx.lineWidth = 2;
+  // Mini-map background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(miniX, miniY, miniSize, miniSize * ROOM_HEIGHT / ROOM_WIDTH);
+  
+  // Mini-map couch
+  ctx.fillStyle = '#f5576c';
+  ctx.fillRect(
+    miniX + couchState.x * scale - 2,
+    miniY + couchState.y * scale - 2,
+    4, 4
+  );
+  
+  // Mini-map player
+  ctx.fillStyle = '#fbbf24';
   ctx.beginPath();
-  ctx.moveTo(w/2 - 10, h/2);
-  ctx.lineTo(w/2 + 10, h/2);
-  ctx.moveTo(w/2, h/2 - 10);
-  ctx.lineTo(w/2, h/2 + 10);
-  ctx.stroke();
+  ctx.arc(
+    miniX + playerState.x * scale,
+    miniY + playerState.y * scale,
+    3, 0, Math.PI * 2
+  );
+  ctx.fill();
+  
+  // Mini-map goal
+  ctx.fillStyle = '#4ade80';
+  ctx.fillRect(
+    miniX + GOAL.x * scale,
+    miniY + (GOAL.y - GOAL.height/2) * scale,
+    2,
+    GOAL.height * scale
+  );
+  
+  // Instructions
+  ctx.fillStyle = '#667eea';
+  ctx.font = 'bold 20px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('WASD = Move & Push', 20, 30);
+  ctx.fillText('Q/E = Rotate View', 20, 55);
+  
+  ctx.textAlign = 'center';
 }
 
 // Mover controls (send to host)

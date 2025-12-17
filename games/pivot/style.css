@@ -2,7 +2,9 @@
 
 body {
   background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);
-  overflow: hidden;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
 }
 
 .container {
@@ -106,19 +108,19 @@ body {
 /* Game Screen */
 #gameScreen {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  padding: 20px 0;
 }
 
 #navigatorView, #moverView {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 15px;
 }
 
 .game-header {
@@ -152,11 +154,11 @@ body {
 
 /* Canvas */
 canvas {
-  margin: 20px 0;
   border: 3px solid #667eea;
   border-radius: 8px;
   box-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
   background: #1a1a2e;
+  display: block;
 }
 
 /* Controls Hint */
