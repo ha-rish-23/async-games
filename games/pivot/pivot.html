@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIVOT! - Asymmetric Co-op Game</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="setupScreen" class="screen active">
+    <div class="container">
+      <h1>PIVOT!</h1>
+      <p class="subtitle">Move a couch through a narrow apartment. One sees, one moves.</p>
+      
+      <div class="role-select">
+        <button id="hostBtn" class="role-btn">Host as Navigator</button>
+        <button id="joinBtn" class="role-btn">Join as Mover</button>
+      </div>
+      
+      <div id="hostSetup" style="display: none;">
+        <h2>Navigator Setup</h2>
+        <p>You will see the top-down floor plan and guide your partner.</p>
+        <button id="createRoomBtn" class="action-btn">Create Room</button>
+        <div id="roomCodeDisplay" class="room-code"></div>
+        <p id="waitingMsg" style="display: none;">Waiting for Mover to join...</p>
+      </div>
+      
+      <div id="joinSetup" style="display: none;">
+        <h2>Mover Setup</h2>
+        <p>You will see first-person view and push the couch.</p>
+        <input type="text" id="roomCodeInput" placeholder="Enter 4-letter code" maxlength="4">
+        <button id="joinRoomBtn" class="action-btn">Join Room</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="gameScreen" style="display: none;">
+    <!-- Navigator View: Top-down 2D -->
+    <div id="navigatorView" style="display: none;">
+      <div class="game-header">
+        <h2>Navigator - Guide your partner!</h2>
+        <div class="stats">
+          <span id="timeDisplay">Time: 0:00</span>
+          <span id="movesDisplay">Moves: 0</span>
+        </div>
+      </div>
+      <canvas id="topDownCanvas" width="800" height="600"></canvas>
+      <div class="controls-hint">
+        <p>Use chat to guide your Mover partner through the apartment!</p>
+        <div class="chat-container">
+          <div id="chatMessages" class="chat-messages"></div>
+          <input type="text" id="chatInput" placeholder="Type guidance..." maxlength="100">
+          <button id="sendChatBtn">Send</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mover View: First-person 3D -->
+    <div id="moverView" style="display: none;">
+      <div class="game-header">
+        <h2>Mover - Push the couch!</h2>
+        <div class="stats">
+          <span id="timeDisplayMover">Time: 0:00</span>
+        </div>
+      </div>
+      <canvas id="firstPersonCanvas" width="800" height="600"></canvas>
+      <div class="controls-hint">
+        <p><strong>WASD</strong> or <strong>Arrow Keys</strong> to push the couch</p>
+        <p><strong>Q/E</strong> to rotate yourself</p>
+        <div class="chat-display">
+          <h3>Navigator says:</h3>
+          <div id="chatDisplay" class="chat-messages"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Result Screen -->
+    <div id="resultScreen" style="display: none;">
+      <h2 id="resultTitle"></h2>
+      <p id="resultMessage"></p>
+      <div class="stats-summary">
+        <p id="finalTime"></p>
+        <p id="finalMoves"></p>
+      </div>
+      <button id="playAgainBtn" class="action-btn">Play Again</button>
+    </div>
+  </div>
+  
+  <!-- Matter.js Physics Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  
+  <!-- PeerJS for networking -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
