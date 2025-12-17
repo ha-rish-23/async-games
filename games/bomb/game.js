@@ -77,7 +77,7 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   
   try {
     console.log('Initializing network as client...');
-    await nm.startClient(roomCode);
+    await nm.joinRoom(roomCode);
     nm.onData((data) => onDataReceived(data));
     onPeerConnected();
   } catch (err) {
