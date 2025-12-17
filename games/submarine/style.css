@@ -1,0 +1,21 @@
+body{background:#000;color:#0f0;overflow-y:auto;overflow-x:hidden}
+canvas{background:#001a00;border-radius:8px;display:block;max-width:100%;box-shadow:0 0 40px rgba(0,255,0,0.3);border:2px solid #0f0}
+#lobby button{margin-right:8px;padding:10px 16px;border-radius:6px;border:0;background:#0f0;color:#001a00;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Share Tech Mono',monospace}
+#lobby button:hover{background:#0dd;transform:scale(1.05);box-shadow:0 4px 12px rgba(0,255,0,0.6)}
+#lobby button:disabled{opacity:0.5;cursor:not-allowed}
+#lobby input{padding:8px 12px;border-radius:6px;border:1px solid rgba(0,255,0,0.3);background:rgba(0,0,0,0.5);color:#0f0;font-family:'Share Tech Mono',monospace;text-transform:uppercase;font-weight:700;letter-spacing:2px;text-align:center}
+#lobby input::placeholder{color:rgba(0,255,0,0.5)}
+#gameStatus{font-family:'Share Tech Mono',monospace;font-size:14px;color:#0f0;text-shadow:0 0 8px rgba(0,255,0,0.6)}
+#roomCode{color:#0ff;font-weight:700;font-size:22px;letter-spacing:3px;text-shadow:0 0 10px rgba(0,255,255,0.8);font-family:'Press Start 2P',monospace}
+#hostWrap,#clientWrap{padding:12px;background:rgba(0,255,0,0.05);border-radius:6px;border:1px solid rgba(0,255,0,0.2)}
+#hostStatus,#clientStatus{margin-top:8px;font-size:13px;min-height:20px;color:#0f0}
+
+h2{color:#0f0;text-shadow:0 0 12px rgba(0,255,0,0.6);font-family:'Press Start 2P',monospace;font-size:18px}
+.centered-panel{border:1px solid rgba(0,255,0,0.3);box-shadow:0 8px 40px rgba(0,255,0,0.2);background:#000}
+
+.control-btn{background:#0f0;color:#001a00;border:2px solid #0f0;padding:12px 20px;margin:5px;font-family:'Share Tech Mono',monospace;font-weight:700;font-size:14px;cursor:pointer;border-radius:4px;transition:all 0.15s;text-shadow:none}
+.control-btn:hover{background:#0ff;border-color:#0ff;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,255,0,0.6)}
+.control-btn:active{transform:translateY(0)}
+
+/* Scanline effect */
+canvas::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:repeating-linear-gradient(0deg,rgba(0,255,0,0.05) 0px,transparent 2px);pointer-events:none}
