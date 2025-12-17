@@ -9,10 +9,11 @@ const gameState = {
   timeRemaining: GAME_DURATION,
   modulesSolved: 0,
   totalModules: 4,
+  difficulty: 1, // 1 = Easy, 2 = Medium, 3 = Hard
   modules: {
-    wire: { solved: false, correctWire: null },
-    button: { solved: false, label: 'PRESS', pressTime: null },
-    symbol: { solved: false, order: ['★', '●', '◆', '✦'], pressed: [] },
+    wire: { solved: false, correctWire: null, wireColors: [] },
+    button: { solved: false, label: 'PRESS', pressTime: null, color: 'red' },
+    symbol: { solved: false, order: [], pressed: [], symbols: [] },
     keypad: { solved: false, code: '', entered: '' }
   },
   gameActive: false,
@@ -117,7 +118,13 @@ function onDataReceived(data) {
   } else if (data.type === 'gameInit') {
     updateManualCode(data.payload.code);
     if (data.payload.wireColors) {
-      updateWireColors(data.payload.wireColors);
+      updateWireManual(data.payload.wireColors, data.payload.wireCount);
+    }
+    if (data.payload.buttonLabel) {
+      updateButtonManual(data.payload.buttonLabel, data.payload.buttonColor);
+    }
+    if (data.payload.symbols) {
+      updateSymbolManual(data.payload.symbols, data.payload.symbolOrder);
     }
   } else if (data.type === 'gameEnd') {
     showResult(data.payload.success, data.payload.message);
@@ -126,59 +133,146 @@ function onDataReceived(data) {
 
 // Initialize game (host only)
 function initializeGame() {
-  // Randomize wire colors and positions
-  const availableColors = ['red', 'blue', 'yellow'];
-  const shuffledColors = availableColors.sort(() => Math.random() - 0.5);
+  // === WIRE MODULE ===
+  const availableColors = ['red', 'blue', 'yellow', 'green', 'white'];
+  const numWires = 3 + Math.floor(Math.random() * 2); // 3-4 wires
+  const shuffledColors = availableColors.sort(() => Math.random() - 0.5).slice(0, numWires);
   
-  // Determine correct wire based on position rules
-  // Rule: If red is at top -> cut red, if blue is in middle -> cut blue, if yellow is at bottom -> cut yellow
-  // Otherwise, cut the last one (bottom)
-  let correctWire = shuffledColors[2]; // Default to bottom wire
+  // Wire cutting logic:
+  let correctWire;
+  const hasRed = shuffledColors.includes('red');
+  const hasBlue = shuffledColors.includes('blue');
+  const hasYellow = shuffledColors.includes('yellow');
+  const redPos = shuffledColors.indexOf('red');
+  const bluePos = shuffledColors.indexOf('blue');
+  const yellowPos = shuffledColors.indexOf('yellow');
   
-  if (shuffledColors[0] === 'red') {
-    correctWire = 'red';
-  } else if (shuffledColors[1] === 'blue') {
-    correctWire = 'blue';
-  } else if (shuffledColors[2] === 'yellow') {
-    correctWire = 'yellow';
+  // Complex rules for variety
+  if (hasRed && redPos === 0) {
+    correctWire = 'red'; // Red at top
+  } else if (hasBlue && bluePos === 1 && numWires >= 3) {
+    correctWire = 'blue'; // Blue in middle
+  } else if (hasYellow && yellowPos === numWires - 1) {
+    correctWire = 'yellow'; // Yellow at bottom
+  } else if (!hasRed && hasBlue) {
+    correctWire = 'blue'; // No red? Cut blue
+  } else if (shuffledColors.filter(c => c === shuffledColors[0]).length === 1) {
+    correctWire = shuffledColors[0]; // First wire if unique color
+  } else {
+    correctWire = shuffledColors[numWires - 1]; // Last wire
   }
   
   gameState.modules.wire.correctWire = correctWire;
-  gameState.modules.wire.wireColors = shuffledColors; // Store for rendering
+  gameState.modules.wire.wireColors = shuffledColors;
   
-  // Update SVG wire colors
-  document.getElementById('wire-red').setAttribute('stroke', getColorHex(shuffledColors[0]));
-  document.getElementById('wire-red').setAttribute('data-color', shuffledColors[0]);
-  document.getElementById('wire-blue').setAttribute('stroke', getColorHex(shuffledColors[1]));
-  document.getElementById('wire-blue').setAttribute('data-color', shuffledColors[1]);
-  document.getElementById('wire-yellow').setAttribute('stroke', getColorHex(shuffledColors[2]));
-  document.getElementById('wire-yellow').setAttribute('data-color', shuffledColors[2]);
+  // Update SVG wires
+  updateWireDisplay(shuffledColors);
   
-  // Randomize button label
-  gameState.modules.button.label = Math.random() > 0.5 ? 'PRESS' : 'HOLD';
+  // === BUTTON MODULE ===
+  const buttonLabels = ['PRESS', 'HOLD', 'DETONATE', 'ABORT'];
+  const buttonColors = ['red', 'blue', 'yellow', 'white'];
+  gameState.modules.button.label = buttonLabels[Math.floor(Math.random() * buttonLabels.length)];
+  gameState.modules.button.color = buttonColors[Math.floor(Math.random() * buttonColors.length)];
+  
   document.getElementById('buttonLabel').textContent = gameState.modules.button.label;
+  document.getElementById('mainButton').setAttribute('fill', getColorHex(gameState.modules.button.color));
   
-  // Generate keypad code
+  // === SYMBOL MODULE ===
+  const allSymbols = ['★', '●', '◆', '✦', '▲', '■', '☀', '♠'];
+  const selectedSymbols = allSymbols.sort(() => Math.random() - 0.5).slice(0, 4);
+  const correctOrder = [...selectedSymbols].sort(); // Alphabetical order
+  
+  gameState.modules.symbol.symbols = selectedSymbols;
+  gameState.modules.symbol.order = correctOrder;
+  gameState.modules.symbol.pressed = [];
+  
+  // Update symbol display
+  document.getElementById('symbol1').textContent = selectedSymbols[0];
+  document.getElementById('symbol2').textContent = selectedSymbols[1];
+  document.getElementById('symbol3').textContent = selectedSymbols[2];
+  document.getElementById('symbol4').textContent = selectedSymbols[3];
+  
+  // === KEYPAD MODULE ===
   gameState.modules.keypad.code = Math.floor(1000 + Math.random() * 9000).toString();
+  gameState.modules.keypad.entered = '';
   
-  // Send initial data to expert
+  // Send ALL data to expert
   nm.sendData('gameInit', {
     code: gameState.modules.keypad.code,
-    wireColors: shuffledColors // Send wire positions to Expert
+    wireColors: shuffledColors,
+    wireCount: numWires,
+    buttonLabel: gameState.modules.button.label,
+    buttonColor: gameState.modules.button.color,
+    symbols: selectedSymbols,
+    symbolOrder: correctOrder
   });
   
-  console.log('Game initialized:', gameState.modules);
-  console.log('Wire colors (top to bottom):', shuffledColors);
-  console.log('Correct wire to cut:', correctWire);
+  console.log('=== GAME INITIALIZED ===');
+  console.log('Wires:', shuffledColors, '-> Cut:', correctWire);
+  console.log('Button:', gameState.modules.button.label, gameState.modules.button.color);
+  console.log('Symbols:', selectedSymbols, '-> Order:', correctOrder);
+  console.log('Code:', gameState.modules.keypad.code);
+}
+
+function updateWireDisplay(colors) {
+  // Hide all wires first
+  document.querySelectorAll('.wire').forEach(w => w.style.display = 'none');
+  
+  const wireElements = ['wire-red', 'wire-blue', 'wire-yellow'];
+  const yPositions = [260, 300, 340];
+  
+  colors.forEach((color, index) => {
+    if (index < 3) {
+      const wireEl = document.getElementById(wireElements[index]);
+      wireEl.style.display = 'block';
+      wireEl.setAttribute('stroke', getColorHex(color));
+      wireEl.setAttribute('data-color', color);
+    } else if (index === 3) {
+      // Add 4th wire if needed
+      const wireModule = document.getElementById('wireModule');
+      const existingFourth = document.getElementById('wire-fourth');
+      if (!existingFourth) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('id', 'wire-fourth');
+        line.setAttribute('x1', '120');
+        line.setAttribute('y1', '360');
+        line.setAttribute('x2', '360');
+        line.setAttribute('y2', '360');
+        line.setAttribute('stroke-width', '8');
+        line.setAttribute('class', 'wire');
+        wireModule.appendChild(line);
+        
+        const c1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c1.setAttribute('cx', '120');
+        c1.setAttribute('cy', '360');
+        c1.setAttribute('r', '6');
+        c1.setAttribute('fill', '#666');
+        wireModule.appendChild(c1);
+        
+        const c2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c2.setAttribute('cx', '360');
+        c2.setAttribute('cy', '360');
+        c2.setAttribute('r', '6');
+        c2.setAttribute('fill', '#666');
+        wireModule.appendChild(c2);
+      }
+      const fourthWire = document.getElementById('wire-fourth');
+      fourthWire.style.display = 'block';
+      fourthWire.setAttribute('stroke', getColorHex(color));
+      fourthWire.setAttribute('data-color', color);
+    }
+  });
 }
 
 function getColorHex(colorName) {
   const colors = {
     'red': '#ff0000',
     'blue': '#0066ff',
-    'yellow': '#ffff00'
+    'yellow': '#ffff00',
+    'green': '#00ff00',
+    'white': '#ffffff'
   };
-  return colors[colorName];
+  return colors[colorName] || '#ffffff';
 }
 
 function startGame() {
@@ -260,11 +354,22 @@ function onButtonRelease() {
   
   const pressDuration = Date.now() - buttonPressStartTime;
   const label = gameState.modules.button.label;
+  const color = gameState.modules.button.color;
   
+  let correct = false;
+  
+  // Complex button rules
   if (label === 'PRESS' && pressDuration < 500) {
-    solveModule('button');
-    audio.blip();
+    correct = true;
   } else if (label === 'HOLD' && pressDuration >= 3000) {
+    correct = true;
+  } else if (label === 'DETONATE' && color === 'red' && pressDuration < 500) {
+    correct = true;
+  } else if (label === 'ABORT' && pressDuration >= 2000 && pressDuration < 4000) {
+    correct = true;
+  }
+  
+  if (correct) {
     solveModule('button');
     audio.blip();
   } else {
@@ -399,38 +504,72 @@ function updateManualCode(code) {
   document.getElementById('manualCode').textContent = code;
 }
 
-function updateWireColors(wireColors) {
-  // Update the manual with actual wire positions
+function updateWireManual(wireColors, wireCount) {
   const wireTable = document.querySelector('.wire-table');
   const colorNames = {
-    'red': 'RED',
-    'blue': 'BLUE', 
-    'yellow': 'YELLOW'
+    'red': 'RED', 'blue': 'BLUE', 'yellow': 'YELLOW',
+    'green': 'GREEN', 'white': 'WHITE'
   };
   
-  wireTable.innerHTML = `
+  const positions = ['Top', 'Second', 'Third', 'Bottom'];
+  let html = '<tr><th>Position</th><th>Color</th><th>Cut If...</th></tr>';
+  
+  wireColors.forEach((color, i) => {
+    const pos = i < positions.length ? positions[i] : `Wire ${i+1}`;
+    let rule = 'See rules below';
+    
+    if (color === 'red' && i === 0) rule = 'RED at top → CUT THIS';
+    else if (color === 'blue' && i === 1) rule = 'BLUE in 2nd position → CUT THIS';
+    else if (color === 'yellow' && i === wireColors.length - 1) rule = 'YELLOW at bottom → CUT THIS';
+    
+    html += `<tr>
+      <td>${pos} wire</td>
+      <td><span class="wire-color ${color}">${colorNames[color]}</span></td>
+      <td>${rule}</td>
+    </tr>`;
+  });
+  
+  html += `<tr><td colspan="3"><strong>Rules:</strong><br/>
+    1. If RED is at top → cut RED<br/>
+    2. If BLUE is 2nd → cut BLUE<br/>
+    3. If YELLOW is last → cut YELLOW<br/>
+    4. If no RED → cut BLUE<br/>
+    5. Otherwise → cut LAST wire</td></tr>`;
+  
+  wireTable.innerHTML = html;
+}
+
+function updateButtonManual(label, color) {
+  const buttonTable = document.querySelector('.button-table');
+  const colorNames = { 'red': 'RED', 'blue': 'BLUE', 'yellow': 'YELLOW', 'white': 'WHITE' };
+  
+  buttonTable.innerHTML = `
+    <tr><th>Label</th><th>Color</th><th>Action</th></tr>
     <tr>
-      <th>Wire Position</th>
-      <th>Color</th>
-      <th>Action</th>
-    </tr>
-    <tr>
-      <td>Top wire</td>
-      <td><span class="wire-color ${wireColors[0]}">${colorNames[wireColors[0]]}</span></td>
-      <td>Cut this if it's RED</td>
-    </tr>
-    <tr>
-      <td>Middle wire</td>
-      <td><span class="wire-color ${wireColors[1]}">${colorNames[wireColors[1]]}</span></td>
-      <td>Cut this if it's BLUE</td>
-    </tr>
-    <tr>
-      <td>Bottom wire</td>
-      <td><span class="wire-color ${wireColors[2]}">${colorNames[wireColors[2]]}</span></td>
-      <td>Cut this if it's YELLOW</td>
-    </tr>
-    <tr>
-      <td colspan="3"><strong>Otherwise:</strong> Cut the bottom wire</td>
+      <td><strong>${label}</strong></td>
+      <td><span class="wire-color ${color}">${colorNames[color]}</span></td>
+      <td>${getButtonAction(label, color)}</td>
     </tr>
   `;
+}
+
+function getButtonAction(label, color) {
+  if (label === 'PRESS') return 'Click once, release immediately';
+  if (label === 'HOLD') return 'Hold for 3+ seconds';
+  if (label === 'DETONATE' && color === 'red') return 'Quick tap (< 0.5s)';
+  if (label === 'DETONATE') return 'DO NOT PRESS - wrong color!';
+  if (label === 'ABORT') return 'Hold for 2-4 seconds';
+  return 'Check label and color';
+}
+
+function updateSymbolManual(symbols, correctOrder) {
+  const symbolSection = document.querySelector('.symbol-order');
+  let html = '<p><strong>Symbols shown on bomb:</strong> ' + symbols.join(' ') + '</p>';
+  html += '<p><strong>Press them in this order:</strong></p>';
+  
+  correctOrder.forEach((sym, i) => {
+    html += `<span class="symbol-item">${i+1}. ${sym}</span>`;
+  });
+  
+  symbolSection.innerHTML = html;
 }
