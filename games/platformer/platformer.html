@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Invisible Platformer — Double Blind</title>
+  <link href="../../css/global.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <main class="centered-panel">
+    <h2>Invisible Platformer</h2>
+    <div id="lobby">
+      <button id="hostBtn">Host (Player A - Spirit)</button>
+      <button id="clientBtn">Client (Player B - Hero)</button>
+      <div id="hostWrap" style="display:none;margin-top:10px">
+        <div>Room Code: <span id="roomCode">----</span></div>
+        <div id="hostStatus">Waiting for player...</div>
+      </div>
+      <div id="clientWrap" style="display:none;margin-top:10px">
+        <input id="codeInput" placeholder="Enter Room Code" />
+        <button id="joinBtn">Join</button>
+        <div id="clientStatus"></div>
+      </div>
+    </div>
+
+    <div id="gameArea" style="display:none;margin-top:12px">
+      <canvas id="gameCanvas" width="900" height="420"></canvas>
+      <div id="gameStatus" style="margin-top:8px;color:#cfe"></div>
+    </div>
+  </main>
+
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

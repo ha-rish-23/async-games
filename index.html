@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Double Blind: An Asymmetric Co-op Arcade</title>
+	<link rel="preconnect" href="https://fonts.gstatic.com">
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="css/global.css">
+	<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+	<script src="https://unpkg.com/matter-js@0.19.0/build/matter.min.js"></script>
+</head>
+<body>
+	<main class="arcade-root">
+		<header class="arcade-header">
+			<h1 class="neon">DOUBLE BLIND</h1>
+			<p class="subtitle">An Asymmetric Co-op Arcade</p>
+		</header>
+
+		<section class="cartridge-grid">
+			<a class="cartridge" href="games/platformer/platformer.html">
+				<div class="label">1</div>
+				<h3>Invisible Platformer</h3>
+				<p>Spirit guides. Hero jumps blind.</p>
+			</a>
+
+			<div class="cartridge disabled">
+				<div class="label">2</div>
+				<h3>Sonar Submarine</h3>
+				<p>Radar and Captain teaming up.</p>
+			</div>
+
+			<div class="cartridge disabled">
+				<div class="label">3</div>
+				<h3>The Art Heist</h3>
+				<p>Hacker + Thief puzzle.</p>
+			</div>
+
+			<div class="cartridge disabled">
+				<div class="label">4</div>
+				<h3>Assembly Line: The Bomb</h3>
+				<p>Expert and Tech defuse under time.</p>
+			</div>
+
+			<div class="cartridge disabled">
+				<div class="label">5</div>
+				<h3>PIVOT!</h3>
+				<p>Two players move a couch through physics.</p>
+			</div>
+
+			<div class="cartridge disabled">
+				<div class="label">6</div>
+				<h3>The Marauder's Map</h3>
+				<p>Full-map guide vs limited student view.</p>
+			</div>
+		</section>
+
+		<footer class="arcade-footer">
+			<small>Hosted locally — Designed for GitHub Pages (relative paths).</small>
+		</footer>
+	</main>
+
+	<script src="js/network.js" defer></script>
+	<script src="js/audio-manager.js" defer></script>
+</body>
+</html>
