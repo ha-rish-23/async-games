@@ -24,7 +24,9 @@ const gameState = {
   pivotTimeRemaining: 0,
   lastRossPivot: 0,
   lastChandlerPivot: 0,
-  couchBroken: false
+  couchBroken: false,
+  stuckCounter: 0, // Frames couch has been stuck
+  lastPosition: { x: 0, y: 0 }
 };
 
 let isRoss = false; // true = Ross (host), false = Chandler (client)
@@ -277,11 +279,34 @@ function startGame() {
     // Check if couch is stuck (velocity near zero for too long)
     const vel = couch.velocity;
     const speed = Math.sqrt(vel.x * vel.x + vel.y * vel.y);
+    const angularSpeed = Math.abs(couch.angularVelocity);
     
-    if (speed < 0.1 && !gameState.pivotActive) {
-      gameState.frustration += 0.5;
-    } else if (speed > 0.1) {
-      gameState.frustration = Math.max(0, gameState.frustration - 0.2);
+    // Only count as stuck after 5 seconds of game time (grace period)
+    if (gameState.timeElapsed > 5) {
+      // Check if couch hasn't moved much
+      const dx = couch.position.x - gameState.lastPosition.x;
+      const dy = couch.position.y - gameState.lastPosition.y;
+      const positionChange = Math.sqrt(dx*dx + dy*dy);
+      
+      if (speed < 0.05 && angularSpeed < 0.01 && positionChange < 0.1 && !gameState.pivotActive) {
+        gameState.stuckCounter++;
+        
+        // Only increase frustration if stuck for 3+ seconds (180 frames)
+        if (gameState.stuckCounter > 180) {
+          gameState.frustration += 0.1; // Much slower increase
+        }
+      } else {
+        gameState.stuckCounter = 0;
+        // Decrease frustration when moving
+        if (speed > 0.05 || angularSpeed > 0.01) {
+          gameState.frustration = Math.max(0, gameState.frustration - 0.3);
+        }
+      }
+      
+      // Update last position every second
+      if (gameState.timeElapsed % 60 === 0) {
+        gameState.lastPosition = { x: couch.position.x, y: couch.position.y };
+      }
     }
     
     // Check win condition
