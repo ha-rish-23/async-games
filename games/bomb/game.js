@@ -2,6 +2,8 @@
 // Technician sees the bomb, Expert reads the manual
 
 const GAME_DURATION = 300; // 5 minutes in seconds
+const nm = new window.NetworkManager();
+const audio = new window.AudioManager();
 
 const gameState = {
   timeRemaining: GAME_DURATION,
@@ -30,32 +32,57 @@ document.getElementById('joinBtn').addEventListener('click', () => {
   document.getElementById('joinSetup').style.display = 'block';
 });
 
-document.getElementById('createRoomBtn').addEventListener('click', () => {
+document.getElementById('createRoomBtn').addEventListener('click', async () => {
   isHost = true;
-  const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-  console.log('Generated room code:', roomCode);
   
-  const display = document.getElementById('roomCodeDisplay');
-  display.textContent = roomCode;
-  console.log('Display updated to:', display.textContent);
-  
-  document.getElementById('createRoomBtn').style.display = 'none';
-  document.getElementById('waitingMsg').style.display = 'block';
-  
-  initNetwork(roomCode, true, onPeerConnected, onDataReceived);
+  try {
+    const roomCode = await nm.startHost();
+    console.log('Generated room code:', roomCode);
+    
+    const display = document.getElementById('roomCodeDisplay');
+    display.textContent = roomCode;
+    console.log('Display updated to:', display.textContent);
+    
+    document.getElementById('createRoomBtn').style.display = 'none';
+    document.getElementById('waitingMsg').style.display = 'block';
+    
+    // Set up data handler
+    nm.onData((data) => onDataReceived(data));
+    
+    // Wait for client to connect - NetworkManager fires 'connection' event on peer
+    // We need to poll for connection
+    const checkConnection = setInterval(() => {
+      if (nm.conn && nm.conn.open) {
+        clearInterval(checkConnection);
+        onPeerConnected();
+      }
+    }, 100);
+    
+  } catch (err) {
+    console.error('Failed to create room:', err);
+    alert('Failed to create room: ' + err.message);
+  }
 });
 
-document.getElementById('joinRoomBtn').addEventListener('click', () => {
+document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   isHost = false;
   const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
   console.log('Attempting to join room:', roomCode);
   
-  if (roomCode.length === 4) {
-    console.log('Initializing network as client...');
-    initNetwork(roomCode, false, onPeerConnected, onDataReceived);
-  } else {
+  if (roomCode.length !== 4) {
     console.error('Invalid room code length:', roomCode.length);
     alert('Please enter a 4-character room code');
+    return;
+  }
+  
+  try {
+    console.log('Initializing network as client...');
+    await nm.startClient(roomCode);
+    nm.onData((data) => onDataReceived(data));
+    onPeerConnected();
+  } catch (err) {
+    console.error('Failed to join room:', err);
+    alert('Failed to join room: ' + err.message);
   }
 });
 
@@ -83,12 +110,14 @@ function onPeerConnected() {
 }
 
 function onDataReceived(data) {
+  console.log('Received data:', data);
+  
   if (data.type === 'gameState') {
-    updateExpertView(data.state);
+    updateExpertView(data.payload);
   } else if (data.type === 'gameInit') {
-    updateManualCode(data.code);
+    updateManualCode(data.payload.code);
   } else if (data.type === 'gameEnd') {
-    showResult(data.success, data.message);
+    showResult(data.payload.success, data.payload.message);
   }
 }
 
@@ -106,8 +135,7 @@ function initializeGame() {
   gameState.modules.keypad.code = Math.floor(1000 + Math.random() * 9000).toString();
   
   // Send initial data to expert
-  sendData({
-    type: 'gameInit',
+  nm.sendData('gameInit', {
     code: gameState.modules.keypad.code
   });
   
@@ -124,12 +152,9 @@ function startGame() {
     updateTimerDisplay();
     
     // Send state to expert
-    sendData({
-      type: 'gameState',
-      state: {
-        timeRemaining: gameState.timeRemaining,
-        modulesSolved: gameState.modulesSolved
-      }
+    nm.sendData('gameState', {
+      timeRemaining: gameState.timeRemaining,
+      modulesSolved: gameState.modulesSolved
     });
     
     if (gameState.timeRemaining <= 0) {
@@ -275,8 +300,7 @@ function endGame(success, message) {
   gameState.gameActive = false;
   clearInterval(gameState.timerInterval);
   
-  sendData({
-    type: 'gameEnd',
+  nm.sendData('gameEnd', {
     success: success,
     message: message
   });
