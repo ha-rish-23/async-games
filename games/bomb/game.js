@@ -279,8 +279,8 @@ function startGame() {
   gameState.gameActive = true;
   gameState.timeRemaining = GAME_DURATION;
   
-  // Start ticking sound
-  audio.startMusic();
+  // Start clock ticking sound
+  audio.startTicking();
   
   // Start timer
   gameState.timerInterval = setInterval(() => {
@@ -451,6 +451,9 @@ function solveModule(moduleName) {
 function endGame(success, message) {
   gameState.gameActive = false;
   clearInterval(gameState.timerInterval);
+  
+  // Stop ticking sound
+  audio.stopMusic();
   
   nm.sendData('gameEnd', {
     success: success,

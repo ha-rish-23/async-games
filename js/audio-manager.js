@@ -86,6 +86,29 @@
       ]);
     }
 
+    tick(){
+      // Clock tick sound - sharp, short click
+      if(!this.ctx) return;
+      this._playOscillator(800, 0.02, 'square', 0.03);
+    }
+
+    startTicking(){
+      if(!this.ctx || this.musicPlaying) return;
+      
+      // Resume audio context if suspended
+      if(this.ctx.state === 'suspended'){
+        this.ctx.resume();
+      }
+      
+      this.musicPlaying = true;
+      
+      // Tick every second
+      this.musicInterval = setInterval(() => {
+        if(!this.musicPlaying) return;
+        this.tick();
+      }, 1000);
+    }
+
     startMusic(){
       if(!this.ctx || this.musicPlaying) return;
       
