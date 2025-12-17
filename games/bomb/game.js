@@ -146,6 +146,9 @@ function startGame() {
   gameState.gameActive = true;
   gameState.timeRemaining = GAME_DURATION;
   
+  // Start ticking sound
+  audio.startMusic();
+  
   // Start timer
   gameState.timerInterval = setInterval(() => {
     gameState.timeRemaining--;
@@ -173,9 +176,13 @@ function startGame() {
   button.addEventListener('mouseup', onButtonRelease);
   
   // Symbol module
-  document.querySelectorAll('#symbolModule text[id^="symbol"]').forEach(symbol => {
-    symbol.style.cursor = 'pointer';
-    symbol.addEventListener('click', () => pressSymbol(symbol.textContent));
+  document.querySelectorAll('#symbolModule text[id^="symbol"]').forEach(symbolEl => {
+    symbolEl.style.cursor = 'pointer';
+    symbolEl.addEventListener('click', (e) => {
+      const symbol = e.target.textContent.trim();
+      console.log('Symbol clicked:', symbol);
+      pressSymbol(symbol);
+    });
   });
   
   // Keypad module
@@ -196,7 +203,7 @@ function cutWire(wireElement) {
   
   if (color === gameState.modules.wire.correctWire) {
     solveModule('wire');
-    AudioManager.playSuccess();
+    audio.blip();
   } else {
     endGame(false, 'Wrong wire! The bomb exploded!');
   }
@@ -217,10 +224,10 @@ function onButtonRelease() {
   
   if (label === 'PRESS' && pressDuration < 500) {
     solveModule('button');
-    AudioManager.playSuccess();
+    audio.blip();
   } else if (label === 'HOLD' && pressDuration >= 3000) {
     solveModule('button');
-    AudioManager.playSuccess();
+    audio.blip();
   } else {
     endGame(false, 'Wrong button action! The bomb exploded!');
   }
@@ -236,11 +243,12 @@ function pressSymbol(symbol) {
   // Check if this is the next correct symbol
   if (symbol === correctOrder[pressed.length]) {
     pressed.push(symbol);
-    AudioManager.playTick();
+    audio.click();
+    console.log('Correct symbol! Progress:', pressed.length, '/', correctOrder.length);
     
     if (pressed.length === correctOrder.length) {
       solveModule('symbol');
-      AudioManager.playSuccess();
+      audio.blip();
     }
   } else {
     endGame(false, 'Wrong symbol order! The bomb exploded!');
@@ -256,12 +264,12 @@ function enterKeypadDigit(digit) {
   
   gameState.modules.keypad.entered += digit;
   updateKeypadDisplay();
-  AudioManager.playTick();
+  audio.click();
   
   if (gameState.modules.keypad.entered.length === 4) {
     if (gameState.modules.keypad.entered === gameState.modules.keypad.code) {
       solveModule('keypad');
-      AudioManager.playSuccess();
+      audio.blip();
     } else {
       endGame(false, 'Wrong code! The bomb exploded!');
     }
@@ -319,9 +327,9 @@ function showResult(success, message) {
   document.getElementById('resultMessage').textContent = message;
   
   if (success) {
-    AudioManager.playWin();
+    audio.win();
   } else {
-    AudioManager.playLose();
+    audio.explosion();
   }
 }
 
