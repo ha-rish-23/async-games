@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Marauder's Map - Stealth Game</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="setupScreen" class="screen active">
+    <div class="container">
+      <h1 class="map-title">The Marauder's Map</h1>
+      <p class="subtitle">"I solemnly swear that I am up to no good."</p>
+      
+      <div class="role-select">
+        <button id="hostBtn" class="role-btn map-keeper">Be the Map Keeper</button>
+        <button id="joinBtn" class="role-btn student">Be the Student</button>
+      </div>
+      
+      <div id="hostSetup" style="display: none;">
+        <h2>Map Keeper</h2>
+        <p>Guide the student through Hogwarts. You see everything.</p>
+        <button id="createRoomBtn" class="action-btn">Create Room</button>
+        <div id="roomCodeDisplay" class="room-code"></div>
+        <p id="waitingMsg" style="display: none;">Waiting for student...</p>
+      </div>
+      
+      <div id="joinSetup" style="display: none;">
+        <h2>Student</h2>
+        <p>Sneak through the castle. Avoid Filch and the prefects!</p>
+        <input type="text" id="roomCodeInput" placeholder="Enter 4-letter code" maxlength="4">
+        <button id="joinRoomBtn" class="action-btn">Join Room</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="gameScreen" style="display: none;">
+    <!-- Map Keeper View: Top-Down Parchment Map -->
+    <div id="mapKeeperView" style="display: none;">
+      <div class="game-header parchment">
+        <h2 class="ink-text">The Marauder's Map</h2>
+        <div class="stats">
+          <span id="timeDisplay">Time: 0:00</span>
+          <span id="detectionDisplay">Detection: <span class="detection-bar"><span id="detectionFill"></span></span></span>
+        </div>
+      </div>
+      <canvas id="mapCanvas" width="900" height="700"></canvas>
+      <div class="controls-hint parchment">
+        <p class="ink-text">Guide your student with voice/text chat. Watch for patrols!</p>
+        <div class="chat-container">
+          <div id="chatMessages" class="chat-messages"></div>
+          <input type="text" id="chatInput" placeholder="Whisper directions..." maxlength="150">
+          <button id="sendChatBtn">Send</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Student View: First-Person Corridor -->
+    <div id="studentView" style="display: none;">
+      <div class="game-header parchment">
+        <h2 class="ink-text">Sneaking Through Hogwarts</h2>
+        <div class="stats">
+          <span id="timeDisplayStudent">Time: 0:00</span>
+          <span id="detectionDisplayStudent">Detection: <span class="detection-bar"><span id="detectionFillStudent"></span></span></span>
+        </div>
+      </div>
+      <canvas id="corridorCanvas" width="900" height="600"></canvas>
+      <div class="controls-hint parchment">
+        <p class="ink-text"><strong>W/A/S/D</strong> - Move | <strong>Arrow Keys</strong> - Look Around | <strong>Shift</strong> - Sprint (risky!)</p>
+        <div class="chat-display">
+          <h3 class="ink-text">Map Keeper's Guidance:</h3>
+          <div id="chatDisplay" class="chat-messages"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Result Screen -->
+    <div id="resultScreen" style="display: none;">
+      <h2 id="resultTitle"></h2>
+      <p id="resultMessage"></p>
+      <div class="stats-summary">
+        <p id="finalTime"></p>
+        <p id="finalDetection"></p>
+      </div>
+      <button id="playAgainBtn" class="action-btn">Play Again</button>
+      <p class="mischief-managed">"Mischief Managed."</p>
+    </div>
+  </div>
+  
+  <!-- PeerJS for networking -->
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

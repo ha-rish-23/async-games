@@ -1,0 +1,427 @@
+/* The Marauder's Map - Harry Potter Themed Stealth Game */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap');
+
+body {
+  background: #2c1810 url('../../images/vintage-grunge.jpg');
+  background-size: cover;
+  background-attachment: fixed;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  font-family: 'IM Fell English', serif;
+}
+
+.container {
+  max-width: 700px;
+  background: rgba(44, 24, 16, 0.9);
+  border: 3px solid #8b6f47;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+}
+
+.map-title {
+  font-family: 'Cinzel', serif;
+  color: #d4af37;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-size: 2.5rem;
+  letter-spacing: 0.1em;
+}
+
+.subtitle {
+  color: #c9a961;
+  font-style: italic;
+  font-size: 1.2rem;
+  margin: -10px 0 30px 0;
+}
+
+/* Role Selection */
+.role-select {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 30px 0;
+  flex-wrap: wrap;
+}
+
+.role-btn {
+  color: white;
+  border: 2px solid #8b6f47;
+  padding: 20px 40px;
+  font-size: 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-family: 'Cinzel', serif;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.role-btn.map-keeper {
+  background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+}
+
+.role-btn.student {
+  background: linear-gradient(135deg, #4a0e0e 0%, #7d1818 100%);
+}
+
+.role-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  border-color: #d4af37;
+}
+
+.role-btn:active {
+  transform: translateY(0);
+}
+
+/* Parchment Style */
+.parchment {
+  background: rgba(242, 234, 211, 0.95);
+  border: 2px solid #8b6f47;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.parchment::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('../../images/vintage-grunge.jpg');
+  opacity: 0.15;
+  pointer-events: none;
+  background-size: cover;
+}
+
+.ink-text {
+  color: #2c1810;
+  font-family: 'IM Fell English', serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Room Setup */
+#hostSetup, #joinSetup {
+  text-align: center;
+  padding: 20px;
+  color: #c9a961;
+}
+
+#hostSetup h2, #joinSetup h2 {
+  color: #d4af37;
+  font-family: 'Cinzel', serif;
+  margin-bottom: 15px;
+}
+
+.room-code {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #d4af37;
+  letter-spacing: 0.3em;
+  margin: 20px 0;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+  font-family: 'Cinzel', serif;
+}
+
+#roomCodeInput {
+  width: 200px;
+  padding: 15px;
+  font-size: 2rem;
+  text-align: center;
+  letter-spacing: 0.2em;
+  border: 2px solid #8b6f47;
+  background: rgba(242, 234, 211, 0.9);
+  color: #2c1810;
+  border-radius: 8px;
+  text-transform: uppercase;
+  margin: 20px 0;
+  font-family: 'Cinzel', serif;
+}
+
+#roomCodeInput:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+}
+
+.action-btn {
+  background: linear-gradient(135deg, #8b4513 0%, #a0522d 100%);
+  color: #f2ead3;
+  border: 2px solid #8b6f47;
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  margin: 10px;
+  font-family: 'Cinzel', serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.action-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.4);
+  border-color: #d4af37;
+}
+
+/* Game Screen */
+#gameScreen {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+}
+
+#mapKeeperView, #studentView {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.game-header {
+  width: 90%;
+  max-width: 900px;
+  padding: 15px;
+  text-align: center;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+
+.game-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.8rem;
+  font-family: 'Cinzel', serif;
+}
+
+.stats {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.stats span {
+  background: rgba(139, 111, 71, 0.3);
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #2c1810;
+}
+
+/* Detection Meter */
+.detection-bar {
+  display: inline-block;
+  width: 150px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #8b4513;
+  border-radius: 10px;
+  position: relative;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+#detectionFill, #detectionFillStudent {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80 0%, #fbbf24 50%, #ef4444 100%);
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 8px;
+}
+
+/* Canvas */
+canvas {
+  border: 4px solid #8b6f47;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  background: #1a1410;
+  display: block;
+}
+
+/* Controls Hint */
+.controls-hint {
+  text-align: center;
+  max-width: 900px;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.controls-hint p {
+  margin: 5px 0;
+  font-size: 1rem;
+  color: #2c1810;
+}
+
+.controls-hint strong {
+  color: #8b4513;
+  font-weight: 700;
+}
+
+/* Chat System */
+.chat-container {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.chat-messages {
+  background: rgba(44, 24, 16, 0.6);
+  border: 2px solid #8b6f47;
+  border-radius: 8px;
+  padding: 15px;
+  min-height: 100px;
+  max-height: 150px;
+  overflow-y: auto;
+  width: 500px;
+  text-align: left;
+  color: #f2ead3;
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.chat-message {
+  margin: 5px 0;
+  padding: 5px;
+}
+
+.chat-message.keeper {
+  color: #d4af37;
+  font-weight: 600;
+}
+
+#chatInput {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border: 2px solid #8b6f47;
+  background: rgba(242, 234, 211, 0.9);
+  color: #2c1810;
+  border-radius: 6px;
+  width: 350px;
+  font-family: 'IM Fell English', serif;
+}
+
+#chatInput:focus {
+  outline: none;
+  border-color: #d4af37;
+}
+
+#sendChatBtn {
+  background: #8b4513;
+  color: #f2ead3;
+  border: 2px solid #8b6f47;
+  padding: 10px 25px;
+  font-size: 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-family: 'Cinzel', serif;
+}
+
+#sendChatBtn:hover {
+  background: #a0522d;
+  border-color: #d4af37;
+}
+
+.chat-display {
+  margin-top: 15px;
+}
+
+.chat-display h3 {
+  color: #2c1810;
+  margin-bottom: 10px;
+  font-family: 'Cinzel', serif;
+}
+
+/* Result Screen */
+#resultScreen {
+  text-align: center;
+  color: #f2ead3;
+  padding: 40px;
+  background: rgba(44, 24, 16, 0.95);
+  border: 3px solid #8b6f47;
+  border-radius: 12px;
+  margin: 20px;
+  max-width: 600px;
+}
+
+#resultTitle {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.8);
+  font-family: 'Cinzel', serif;
+  color: #d4af37;
+}
+
+#resultMessage {
+  font-size: 1.3rem;
+  color: #c9a961;
+  margin-bottom: 30px;
+}
+
+.stats-summary {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 10px;
+  border: 2px solid #8b6f47;
+  margin: 20px auto;
+  max-width: 400px;
+}
+
+.stats-summary p {
+  font-size: 1.2rem;
+  color: #d4af37;
+  margin: 10px 0;
+}
+
+.mischief-managed {
+  font-style: italic;
+  color: #8b6f47;
+  margin-top: 20px;
+  font-size: 1.1rem;
+}
+
+/* Scrollbar styling */
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #8b6f47;
+  border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+  
+  .chat-messages, #chatInput {
+    width: 90%;
+  }
+}
