@@ -10,15 +10,15 @@ const gameState = {
   gameActive: false,
   timerInterval: null,
   player: {
-    x: 2,
-    y: 2,
+    x: 3,
+    y: 3,
     angle: 0,
-    speed: 0.05,
-    sprintSpeed: 0.1,
+    speed: 0.08,
+    sprintSpeed: 0.15,
     isSprinting: false
   },
   patrols: [], // Filch, Mrs. Norris, prefects
-  goal: { x: 28, y: 28 }
+  goal: { x: 27, y: 27 }
 };
 
 let isMapKeeper = false; // true = host, false = client
@@ -38,38 +38,51 @@ function generateMap() {
     }
   }
   
-  // Carve corridors (simplified Hogwarts layout)
-  // Main corridor (horizontal)
-  for (let x = 1; x < MAP_SIZE - 1; x++) {
-    map[5][x] = 0;
-    map[15][x] = 0;
-    map[25][x] = 0;
+  // Create a proper Hogwarts-style maze
+  // Main horizontal corridors
+  for (let x = 2; x < MAP_SIZE - 2; x++) {
+    map[3][x] = 0;
+    map[8][x] = 0;
+    map[13][x] = 0;
+    map[18][x] = 0;
+    map[23][x] = 0;
+    map[27][x] = 0;
   }
   
-  // Vertical corridors
-  for (let y = 1; y < MAP_SIZE - 1; y++) {
-    map[y][5] = 0;
-    map[y][15] = 0;
-    map[y][25] = 0;
+  // Main vertical corridors
+  for (let y = 2; y < MAP_SIZE - 2; y++) {
+    map[y][3] = 0;
+    map[y][8] = 0;
+    map[y][13] = 0;
+    map[y][18] = 0;
+    map[y][23] = 0;
+    map[y][27] = 0;
   }
   
-  // Rooms and alcoves
-  for (let x = 7; x < 13; x++) {
-    for (let y = 7; y < 13; y++) {
+  // Large rooms
+  for (let x = 10; x <= 12; x++) {
+    for (let y = 10; y <= 12; y++) {
       map[y][x] = 0;
     }
   }
   
-  for (let x = 17; x < 23; x++) {
-    for (let y = 17; y < 23; y++) {
+  for (let x = 20; x <= 22; x++) {
+    for (let y = 5; y <= 7; y++) {
       map[y][x] = 0;
     }
   }
   
-  // Goal area
-  map[28][28] = 2;
-  map[27][28] = 0;
-  map[28][27] = 0;
+  for (let x = 5; x <= 7; x++) {
+    for (let y = 20; y <= 22; y++) {
+      map[y][x] = 0;
+    }
+  }
+  
+  // Goal area (bottom-right corner) - make it clearly marked
+  map[27][27] = 2;
+  map[26][27] = 2;
+  map[27][26] = 2;
+  map[26][26] = 2;
 }
 
 generateMap();
@@ -77,9 +90,9 @@ generateMap();
 // Patrol entities
 function createPatrols() {
   gameState.patrols = [
-    { name: 'Filch', x: 10, y: 5, path: [{x:5,y:5},{x:25,y:5},{x:25,y:15},{x:5,y:15}], pathIndex: 0, speed: 0.02, detectionRange: 3 },
-    { name: 'Mrs. Norris', x: 15, y: 15, path: [{x:15,y:5},{x:15,y:25},{x:5,y:25},{x:5,y:5}], pathIndex: 0, speed: 0.03, detectionRange: 2.5 },
-    { name: 'Prefect', x: 20, y: 20, path: [{x:15,y:15},{x:25,y:15},{x:25,y:25},{x:15,y:25}], pathIndex: 0, speed: 0.025, detectionRange: 2.8 }
+    { name: 'Filch', x: 8, y: 8, path: [{x:3,y:8},{x:27,y:8},{x:27,y:18},{x:3,y:18}], pathIndex: 0, speed: 0.025, detectionRange: 3.5 },
+    { name: 'Mrs. Norris', x: 13, y: 13, path: [{x:13,y:3},{x:13,y:27},{x:23,y:27},{x:23,y:3}], pathIndex: 0, speed: 0.03, detectionRange: 3 },
+    { name: 'Prefect', x: 18, y: 18, path: [{x:8,y:18},{x:23,y:18},{x:23,y:23},{x:8,y:23}], pathIndex: 0, speed: 0.02, detectionRange: 3.2 }
   ];
 }
 
@@ -152,35 +165,6 @@ document.getElementById('playAgainBtn')?.addEventListener('click', () => {
   location.reload();
 });
 
-// Chat
-document.getElementById('sendChatBtn')?.addEventListener('click', sendChat);
-document.getElementById('chatInput')?.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendChat();
-});
-
-function sendChat() {
-  const input = document.getElementById('chatInput');
-  if (!input) return;
-  
-  const message = input.value.trim();
-  if (message.length === 0) return;
-  
-  nm.sendData('chat', { message });
-  displayChat(message, true);
-  input.value = '';
-}
-
-function displayChat(message, isSelf = false) {
-  const container = document.getElementById('chatMessages') || document.getElementById('chatDisplay');
-  if (!container) return;
-  
-  const msgEl = document.createElement('div');
-  msgEl.className = 'chat-message' + (isSelf ? ' keeper' : '');
-  msgEl.textContent = (isSelf ? 'You: ' : 'Map Keeper: ') + message;
-  container.appendChild(msgEl);
-  container.scrollTop = container.scrollHeight;
-}
-
 // Network
 function onPeerConnected() {
   if (isMapKeeper) {
@@ -201,8 +185,6 @@ function onDataReceived(data) {
     updateStudentView(data.payload);
   } else if (data.type === 'playerInput') {
     handlePlayerInput(data.payload);
-  } else if (data.type === 'chat') {
-    displayChat(data.payload.message, false);
   } else if (data.type === 'gameEnd') {
     showResult(data.payload.success, data.payload.message);
   }
@@ -298,7 +280,10 @@ function sendGameState() {
 // Student controls
 function setupControls() {
   document.addEventListener('keydown', (e) => {
-    keys[e.key.toLowerCase()] = true;
+    const key = e.key.toLowerCase();
+    keys[key] = true;
+    
+    console.log('Key pressed:', key, 'All keys:', keys);
     
     if (e.key === 'Shift') {
       gameState.player.isSprinting = true;
@@ -306,7 +291,8 @@ function setupControls() {
   });
   
   document.addEventListener('keyup', (e) => {
-    keys[e.key.toLowerCase()] = false;
+    const key = e.key.toLowerCase();
+    keys[key] = false;
     
     if (e.key === 'Shift') {
       gameState.player.isSprinting = false;
@@ -315,14 +301,26 @@ function setupControls() {
   
   // Send input to host every frame
   setInterval(() => {
-    if (!gameState.gameActive) return;
-    
+    console.log('Sending keys to host:', keys);
     nm.sendData('playerInput', { keys, isSprinting: gameState.player.isSprinting });
+  }, 16.67);
+  
+  // Start rendering loop for student
+  setInterval(() => {
+    if (studentState) {
+      renderFirstPerson();
+    }
   }, 16.67);
 }
 
 function handlePlayerInput(input) {
-  if (!isMapKeeper || !gameState.gameActive) return;
+  if (!isMapKeeper) return;
+  if (!gameState.gameActive) {
+    console.log('Game not active yet, ignoring input');
+    return;
+  }
+  
+  console.log('Host received input:', input);
   
   const { keys: playerKeys, isSprinting } = input;
   gameState.player.isSprinting = isSprinting;
@@ -330,12 +328,16 @@ function handlePlayerInput(input) {
   const speed = isSprinting ? gameState.player.sprintSpeed : gameState.player.speed;
   const rotSpeed = 0.05;
   
+  console.log('Processing movement with speed:', speed, 'keys:', playerKeys);
+  
   // Rotation
   if (playerKeys['arrowleft']) {
     gameState.player.angle -= rotSpeed;
+    console.log('Rotating left, new angle:', gameState.player.angle);
   }
   if (playerKeys['arrowright']) {
     gameState.player.angle += rotSpeed;
+    console.log('Rotating right, new angle:', gameState.player.angle);
   }
   
   // Movement
@@ -343,29 +345,51 @@ function handlePlayerInput(input) {
   let moveY = 0;
   
   if (playerKeys['w']) {
-    moveX = Math.cos(gameState.player.angle) * speed;
-    moveY = Math.sin(gameState.player.angle) * speed;
+    moveX += Math.cos(gameState.player.angle) * speed;
+    moveY += Math.sin(gameState.player.angle) * speed;
+    console.log('Moving forward');
   }
   if (playerKeys['s']) {
-    moveX = -Math.cos(gameState.player.angle) * speed;
-    moveY = -Math.sin(gameState.player.angle) * speed;
+    moveX += -Math.cos(gameState.player.angle) * speed;
+    moveY += -Math.sin(gameState.player.angle) * speed;
+    console.log('Moving backward');
   }
   if (playerKeys['a']) {
-    moveX = Math.cos(gameState.player.angle - Math.PI/2) * speed;
-    moveY = Math.sin(gameState.player.angle - Math.PI/2) * speed;
+    moveX += Math.cos(gameState.player.angle - Math.PI/2) * speed;
+    moveY += Math.sin(gameState.player.angle - Math.PI/2) * speed;
+    console.log('Moving left');
   }
   if (playerKeys['d']) {
-    moveX = Math.cos(gameState.player.angle + Math.PI/2) * speed;
-    moveY = Math.sin(gameState.player.angle + Math.PI/2) * speed;
+    moveX += Math.cos(gameState.player.angle + Math.PI/2) * speed;
+    moveY += Math.sin(gameState.player.angle + Math.PI/2) * speed;
+    console.log('Moving right');
   }
   
-  // Collision detection
+  console.log('Total movement:', moveX, moveY);
+  
+  // Better collision detection with sliding
   const newX = gameState.player.x + moveX;
   const newY = gameState.player.y + moveY;
   
+  // Check if full movement is valid
   if (map[Math.floor(newY)] && map[Math.floor(newY)][Math.floor(newX)] !== 1) {
     gameState.player.x = newX;
     gameState.player.y = newY;
+    console.log('New position:', newX, newY);
+  } else {
+    // Try sliding along walls - try X movement only
+    const tryX = gameState.player.x + moveX;
+    if (map[Math.floor(gameState.player.y)] && map[Math.floor(gameState.player.y)][Math.floor(tryX)] !== 1) {
+      gameState.player.x = tryX;
+      console.log('Sliding X:', tryX);
+    }
+    
+    // Try Y movement only
+    const tryY = gameState.player.y + moveY;
+    if (map[Math.floor(tryY)] && map[Math.floor(tryY)][Math.floor(gameState.player.x)] !== 1) {
+      gameState.player.y = tryY;
+      console.log('Sliding Y:', tryY);
+    }
   }
   
   if (isSprinting) {
@@ -402,13 +426,13 @@ function renderMap() {
         ctx.fillStyle = '#2c1810';
         ctx.fillRect(px, py, tileSize, tileSize);
       } else if (map[y][x] === 2) {
-        // Goal (gold)
+        // Goal (gold with star)
         ctx.fillStyle = '#d4af37';
         ctx.fillRect(px, py, tileSize, tileSize);
         ctx.fillStyle = '#2c1810';
-        ctx.font = 'bold 12px Arial';
+        ctx.font = 'bold 16px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('★', px + tileSize/2, py + tileSize/2 + 4);
+        ctx.fillText('★', px + tileSize/2, py + tileSize/2 + 6);
       } else {
         // Corridor (parchment)
         ctx.fillStyle = '#e8dcc0';
@@ -452,7 +476,7 @@ function renderMap() {
   if (images.footprints.complete) {
     ctx.save();
     ctx.translate(px, py);
-    ctx.rotate(gameState.player.angle);
+    ctx.rotate(gameState.player.angle + Math.PI/2); // Rotate 90 degrees to align footprints forward
     ctx.drawImage(images.footprints, -tileSize/2, -tileSize/2, tileSize, tileSize);
     ctx.restore();
   } else {
@@ -486,7 +510,6 @@ function updateStudentView(state) {
   gameState.patrols = state.patrols;
   
   updateDetectionMeter();
-  renderFirstPerson();
 }
 
 function renderFirstPerson() {
@@ -550,19 +573,11 @@ function renderFirstPerson() {
     
     if (hitGoal) {
       ctx.fillStyle = `rgb(${Math.min(255, shade + 100)}, ${Math.min(255, shade + 80)}, ${shade/2})`;
+      ctx.fillRect(x, ceiling, 2, floor - ceiling);
     } else {
-      // Use corridor texture if available
-      if (images.corridor.complete && shade > 50) {
-        ctx.drawImage(images.corridor, 
-          i % images.corridor.width, 0, 1, images.corridor.height,
-          x, ceiling, 2, floor - ceiling
-        );
-        ctx.fillStyle = `rgba(0, 0, 0, ${1 - shade/255})`;
-        ctx.fillRect(x, ceiling, 2, floor - ceiling);
-      } else {
-        ctx.fillStyle = `rgb(${shade/2}, ${shade/3}, ${shade/4})`;
-        ctx.fillRect(x, ceiling, 2, floor - ceiling);
-      }
+      // Solid stone wall color
+      ctx.fillStyle = `rgb(${shade/2}, ${shade/3}, ${shade/4})`;
+      ctx.fillRect(x, ceiling, 2, floor - ceiling);
     }
   }
   
