@@ -100,14 +100,10 @@ createPatrols();
 
 // Load images
 const images = {
-  footprints: new Image(),
-  parchment: new Image(),
-  corridor: new Image()
+  footprints: new Image()
 };
 
 images.footprints.src = '../../images/human-footprints.png';
-images.parchment.src = '../../images/vintage-grunge.jpg';
-images.corridor.src = '../../images/hpbg.jpg';
 
 // Setup
 document.getElementById('hostBtn').addEventListener('click', () => {
@@ -408,12 +404,6 @@ function renderMap() {
   // Parchment background
   ctx.fillStyle = '#f2ead3';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  if (images.parchment.complete) {
-    ctx.globalAlpha = 0.3;
-    ctx.drawImage(images.parchment, 0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1;
-  }
   
   // Draw map
   for (let y = 0; y < MAP_SIZE; y++) {
