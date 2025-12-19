@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Broken Keyboard - Shared Typing</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="setupScreen" class="screen active">
+    <div class="container">
+      <h1 class="game-title">⌨️ The Broken Keyboard</h1>
+      <p class="subtitle">Share a keyboard. Type together. Don't mess up.</p>
+      
+      <div class="role-select">
+        <button id="hostBtn" class="role-btn left-hand">Left Hand (QWERT...)</button>
+        <button id="joinBtn" class="role-btn right-hand">Right Hand (YUIOP...)</button>
+      </div>
+      
+      <div id="hostSetup" style="display: none;">
+        <h2>Left Hand Player</h2>
+        <p>You control: Q W E R T A S D F G Z X C V</p>
+        <button id="createRoomBtn" class="action-btn">Create Room</button>
+        <div id="roomCodeDisplay" class="room-code"></div>
+        <p id="waitingMsg" style="display: none;">Waiting for Right Hand player...</p>
+      </div>
+      
+      <div id="joinSetup" style="display: none;">
+        <h2>Right Hand Player</h2>
+        <p>You control: Y U I O P H J K L B N M</p>
+        <input type="text" id="roomCodeInput" placeholder="Enter 4-letter code" maxlength="4">
+        <button id="joinRoomBtn" class="action-btn">Join Room</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="gameScreen" style="display: none;">
+    <div class="game-container">
+      <div class="game-header">
+        <h2 class="game-title">⌨️ The Broken Keyboard</h2>
+        <div class="stats">
+          <span id="scoreDisplay">Score: 0</span>
+          <span id="roundDisplay">Round: 1/10</span>
+          <span id="timerDisplay">Time: 30</span>
+        </div>
+      </div>
+      
+      <div class="prompt-area">
+        <div class="prompt-label">Type this word:</div>
+        <div id="promptWord" class="prompt-word">CHEETAH</div>
+      </div>
+      
+      <div class="typing-area">
+        <div id="typedText" class="typed-text"></div>
+        <div class="cursor"></div>
+      </div>
+      
+      <div class="keyboard-display">
+        <div id="leftKeys" class="key-group left">
+          <div class="key-label">Your Keys:</div>
+          <div class="keys">Q W E R T A S D F G Z X C V</div>
+        </div>
+        <div id="rightKeys" class="key-group right">
+          <div class="key-label">Your Keys:</div>
+          <div class="keys">Y U I O P H J K L B N M</div>
+        </div>
+      </div>
+      
+      <!-- Mobile Touch Keyboard -->
+      <div id="mobileKeyboard" class="mobile-keyboard">
+        <div class="mobile-keys" id="mobileKeysContainer"></div>
+        <button id="backspaceBtn" class="mobile-key backspace">⌫</button>
+      </div>
+      
+      <div class="feedback-area">
+        <div id="feedbackMsg" class="feedback-msg"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="resultScreen" class="screen" style="display: none;">
+    <div class="container">
+      <h2 id="resultTitle">Game Over!</h2>
+      <div id="resultMessage" class="result-msg"></div>
+      <div class="final-stats">
+        <p id="finalScore">Final Score: 0</p>
+        <p id="accuracy">Accuracy: 0%</p>
+        <p id="wordsCompleted">Words Completed: 0/10</p>
+      </div>
+      <button id="playAgainBtn" class="action-btn">Play Again</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
