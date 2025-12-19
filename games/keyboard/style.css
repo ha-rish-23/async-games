@@ -151,6 +151,7 @@ body {
   margin-bottom: 30px;
   flex-wrap: wrap;
   gap: 15px;
+  position: relative;
 }
 
 .game-header .game-title {
@@ -163,6 +164,27 @@ body {
   gap: 20px;
   font-size: 1.1em;
   font-weight: bold;
+  flex-wrap: wrap;
+}
+
+.end-game-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 10px 20px;
+  background: rgba(255, 100, 100, 0.3);
+  border: 2px solid #ff6b6b;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.end-game-btn:hover {
+  background: #ff6b6b;
+  transform: scale(1.05);
 }
 
 .prompt-area {
