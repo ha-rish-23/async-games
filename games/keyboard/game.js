@@ -270,37 +270,47 @@ function getPromptForRound() {
 }
 
 function nextRound() {
-  const { prompt, label, timeLimit } = getPromptForRound();
+  // Only host generates the prompt
+  if (isLeftHand) {
+    const { prompt, label, timeLimit } = getPromptForRound();
+    
+    gameState.currentWord = prompt;
+    gameState.typedText = '';
+    gameState.timeLeft = timeLimit;
+    
+    // Send initial state to client immediately
+    sendGameState();
+  }
   
-  gameState.currentWord = prompt;
-  gameState.typedText = '';
-  gameState.timeLeft = timeLimit;
-  
-  // Update prompt label
-  document.getElementById('promptLabel').textContent = 
-    gameState.level === 1 ? 'Type this word:' :
-    gameState.level === 2 ? 'Type this phrase:' :
-    gameState.level === 3 ? 'Type this sentence:' :
-    'Type this paragraph:';
+  // Update prompt label for both players
+  if (gameState.currentWord) {
+    document.getElementById('promptLabel').textContent = 
+      gameState.level === 1 ? 'Type this word:' :
+      gameState.level === 2 ? 'Type this phrase:' :
+      gameState.level === 3 ? 'Type this sentence:' :
+      'Type this paragraph:';
+  }
   
   updateDisplay();
-  sendGameState();
   
   if (gameState.timerInterval) clearInterval(gameState.timerInterval);
-  gameState.timerInterval = setInterval(() => {
-    gameState.timeLeft--;
-    updateDisplay();
-    sendGameState();
-    
-    if (gameState.timeLeft <= 0) {
-      clearInterval(gameState.timerInterval);
-      showFeedback('Time\'s up!', 'error');
-      setTimeout(() => {
-        gameState.round++;
-        nextRound();
-      }, 2000);
-    }
-  }, 1000);
+  
+  if (isLeftHand) {
+    gameState.timerInterval = setInterval(() => {
+      gameState.timeLeft--;
+      updateDisplay();
+      sendGameState();
+      
+      if (gameState.timeLeft <= 0) {
+        clearInterval(gameState.timerInterval);
+        showFeedback('Time\'s up!', 'error');
+        setTimeout(() => {
+          gameState.round++;
+          nextRound();
+        }, 2000);
+      }
+    }, 1000);
+  }
 }
 
 function handleKeyPress(key) {
@@ -443,6 +453,13 @@ function updateGameState(state) {
   gameState.correctWords = state.correctWords;
   gameState.level = state.level;
   gameState.gameActive = true;
+  
+  // Update prompt label when state is received
+  document.getElementById('promptLabel').textContent = 
+    gameState.level === 1 ? 'Type this word:' :
+    gameState.level === 2 ? 'Type this phrase:' :
+    gameState.level === 3 ? 'Type this sentence:' :
+    'Type this paragraph:';
   
   updateDisplay();
 }
