@@ -17,6 +17,21 @@ html,body{height:100%;margin:0;font-family:Share Tech Mono,system-ui,monospace;b
 .cartridge h3{margin:0;font-size:16px}
 .cartridge p{margin:0;opacity:0.8;font-size:12px}
 .cartridge.disabled{opacity:0.45;pointer-events:none;filter:grayscale(.1)}
+
+/* Stranger Things themed cartridges */
+.cartridge.stranger-things{
+  background:linear-gradient(180deg, rgba(229,9,20,0.1), rgba(26,15,46,0.3));
+  border-color:rgba(229,9,20,0.3);
+}
+.cartridge.stranger-things:hover{
+  box-shadow:0 12px 40px rgba(229,9,20,0.2);
+  border-color:rgba(229,9,20,0.6);
+}
+.cartridge.stranger-things .label{
+  background:rgba(229,9,20,0.2);
+  color:#ff6b6b;
+}
+
 .arcade-footer{margin-top:28px;opacity:0.6}
 
 /* Small utilities for pages */

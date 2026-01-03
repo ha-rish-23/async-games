@@ -1,0 +1,605 @@
+/* Gate Closing Ritual - Stranger Things Upside Down Aesthetic */
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nosifer&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+:root {
+  --st-red: #e50914;
+  --st-dark: #0a0a0a;
+  --upside-down-blue: #1a1a3e;
+  --upside-down-purple: #3e1a4d;
+  --gate-glow: #ff6b6b;
+  --tentacle-color: #8b4513;
+  --energy-blue: #4dd0e1;
+  --success-green: #76ff03;
+  --fail-red: #ff1744;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Special Elite', monospace;
+  background: linear-gradient(180deg, var(--upside-down-blue) 0%, var(--st-dark) 50%, var(--upside-down-purple) 100%);
+  color: #fff;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Floating particles effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(2px 2px at 20% 30%, white, transparent),
+    radial-gradient(2px 2px at 60% 70%, white, transparent),
+    radial-gradient(1px 1px at 50% 50%, white, transparent),
+    radial-gradient(1px 1px at 80% 10%, white, transparent),
+    radial-gradient(2px 2px at 90% 60%, white, transparent);
+  background-size: 200% 200%;
+  animation: particleFloat 8s ease-in-out infinite;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes particleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+/* Vignette effect */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+  z-index: 3;
+}
+
+/* Title */
+.title {
+  font-family: 'Creepster', cursive;
+  font-size: 4rem;
+  color: var(--st-red);
+  text-shadow: 
+    0 0 10px var(--st-red),
+    0 0 20px var(--st-red),
+    0 0 40px var(--st-red),
+    3px 3px 0 #000;
+  margin-bottom: 1rem;
+  letter-spacing: 3px;
+  animation: titlePulse 3s ease-in-out infinite;
+}
+
+@keyframes titlePulse {
+  0%, 100% { 
+    text-shadow: 
+      0 0 10px var(--st-red),
+      0 0 20px var(--st-red),
+      0 0 40px var(--st-red),
+      3px 3px 0 #000;
+  }
+  50% { 
+    text-shadow: 
+      0 0 20px var(--st-red),
+      0 0 40px var(--st-red),
+      0 0 60px var(--st-red),
+      3px 3px 0 #000;
+  }
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #ccc;
+  margin-bottom: 3rem;
+  letter-spacing: 2px;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(135deg, var(--st-red) 0%, #a00710 100%);
+  color: white;
+  border: 2px solid #fff;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-family: 'Special Elite', monospace;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(229, 9, 20, 0.8);
+}
+
+.btn-large {
+  font-size: 1.5rem;
+  padding: 1.2rem 3rem;
+}
+
+.role-select {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Setup Panel */
+.setup-panel {
+  background: rgba(10, 10, 10, 0.9);
+  border: 3px solid var(--st-red);
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 0 40px rgba(229, 9, 20, 0.4);
+}
+
+.setup-panel label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  color: var(--st-red);
+  letter-spacing: 2px;
+}
+
+.setup-panel input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 2rem;
+  text-align: center;
+  background: #000;
+  color: #fff;
+  border: 2px solid var(--st-red);
+  margin-bottom: 1.5rem;
+  font-family: 'Special Elite', monospace;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+}
+
+.player-count-select {
+  margin-bottom: 2rem;
+}
+
+.player-count-select label {
+  margin-bottom: 1rem;
+}
+
+.btn-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.player-count-btn {
+  background: #222;
+  color: #fff;
+  border: 2px solid #555;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+  font-family: 'Special Elite', monospace;
+  transition: all 0.3s;
+}
+
+.player-count-btn.active,
+.player-count-btn:hover {
+  background: var(--st-red);
+  border-color: #fff;
+  box-shadow: 0 0 20px var(--st-red);
+}
+
+.room-code-display {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.room-code-display .label {
+  font-size: 1rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.room-code-display .code {
+  font-size: 3rem;
+  color: var(--st-red);
+  font-weight: bold;
+  letter-spacing: 10px;
+  text-shadow: 0 0 20px var(--st-red);
+}
+
+.players-waiting {
+  margin: 2rem 0;
+}
+
+.players-waiting .label {
+  font-size: 1rem;
+  color: #aaa;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-item {
+  background: #1a1a1a;
+  padding: 0.8rem;
+  border-left: 3px solid var(--energy-blue);
+  color: #fff;
+}
+
+/* Game Screen */
+#gameScreen {
+  position: relative;
+  z-index: 3;
+  padding: 2rem;
+  display: grid;
+  grid-template-areas:
+    "gate ritual"
+    "gate players"
+    "role role";
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 2rem;
+  min-height: 100vh;
+}
+
+/* Gate Visual */
+.gate-container {
+  grid-area: gate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#gateVisual {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  filter: drop-shadow(0 0 20px var(--gate-glow));
+}
+
+.gate-outer {
+  fill: none;
+  stroke: var(--gate-glow);
+  stroke-width: 3;
+  opacity: 0.6;
+  animation: gatePulse 2s ease-in-out infinite;
+}
+
+.gate-inner {
+  fill: none;
+  stroke: var(--gate-glow);
+  stroke-width: 2;
+  opacity: 0.8;
+  animation: gatePulse 2s ease-in-out infinite 0.5s;
+}
+
+.gate-core {
+  fill: var(--gate-glow);
+  opacity: 0.3;
+  animation: gatePulse 2s ease-in-out infinite 1s;
+}
+
+@keyframes gatePulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.health-bg {
+  fill: #222;
+  stroke: #555;
+  stroke-width: 2;
+}
+
+.health-bar {
+  fill: var(--success-green);
+  transition: width 0.5s, fill 0.5s;
+}
+
+.gate-status {
+  font-size: 1.5rem;
+  color: var(--success-green);
+  text-shadow: 0 0 10px var(--success-green);
+  letter-spacing: 2px;
+}
+
+/* Role Panel */
+.role-panel {
+  grid-area: role;
+  background: rgba(10, 10, 10, 0.9);
+  border: 3px solid var(--energy-blue);
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(77, 208, 225, 0.4);
+}
+
+.role-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.role-name {
+  font-size: 2rem;
+  color: var(--energy-blue);
+  text-shadow: 0 0 15px var(--energy-blue);
+  margin-bottom: 1rem;
+  letter-spacing: 3px;
+}
+
+.role-description {
+  font-size: 1rem;
+  color: #aaa;
+  line-height: 1.6;
+}
+
+.role-action {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 150px;
+}
+
+.action-btn {
+  background: linear-gradient(135deg, var(--energy-blue) 0%, #0288d1 100%);
+  color: white;
+  border: 3px solid #fff;
+  padding: 2rem 4rem;
+  font-size: 1.5rem;
+  font-family: 'Special Elite', monospace;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  box-shadow: 0 0 30px rgba(77, 208, 225, 0.5);
+  transition: all 0.3s;
+}
+
+.action-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 0 50px rgba(77, 208, 225, 0.8);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cooldown-indicator {
+  margin-top: 2rem;
+}
+
+.cooldown-bar {
+  height: 20px;
+  background: #222;
+  border: 2px solid #555;
+  position: relative;
+  overflow: hidden;
+}
+
+.cooldown-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background: var(--energy-blue);
+  animation: cooldown 5s linear;
+}
+
+@keyframes cooldown {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.cooldown-text {
+  text-align: center;
+  margin-top: 0.5rem;
+  color: #aaa;
+}
+
+/* Ritual Status */
+.ritual-status {
+  grid-area: ritual;
+  background: rgba(10, 10, 10, 0.9);
+  border: 3px solid var(--st-red);
+  padding: 1.5rem;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 0 30px rgba(229, 9, 20, 0.3);
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: #1a1a1a;
+  border-left: 3px solid var(--st-red);
+}
+
+.status-item .label {
+  color: #aaa;
+  font-size: 1rem;
+}
+
+.status-item span:last-child {
+  color: var(--success-green);
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--success-green);
+}
+
+/* Players Status */
+.players-status {
+  grid-area: players;
+  background: rgba(10, 10, 10, 0.9);
+  border: 3px solid var(--energy-blue);
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(77, 208, 225, 0.3);
+}
+
+.players-status .label {
+  color: var(--energy-blue);
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  letter-spacing: 2px;
+}
+
+.players-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.player-card {
+  background: #1a1a1a;
+  padding: 1rem;
+  border: 2px solid #555;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.player-card.active {
+  border-color: var(--energy-blue);
+  box-shadow: 0 0 15px rgba(77, 208, 225, 0.5);
+}
+
+.player-card .player-name {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.player-card .player-role {
+  font-size: 0.8rem;
+  color: var(--energy-blue);
+  text-transform: uppercase;
+}
+
+/* Result Screen */
+.result-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.result-title {
+  font-family: 'Nosifer', cursive;
+  font-size: 5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 30px currentColor;
+}
+
+.result-title.victory {
+  color: var(--success-green);
+}
+
+.result-title.defeat {
+  color: var(--fail-red);
+}
+
+.result-message {
+  font-size: 1.5rem;
+  color: #ccc;
+  margin-bottom: 3rem;
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.8;
+}
+
+/* Tentacle Animation */
+.tentacle {
+  stroke: var(--tentacle-color);
+  stroke-width: 8;
+  fill: none;
+  opacity: 0.7;
+  filter: drop-shadow(0 0 5px var(--tentacle-color));
+  animation: tentacleWave 3s ease-in-out infinite;
+}
+
+@keyframes tentacleWave {
+  0%, 100% { d: path('M200,250 Q180,300 150,350'); }
+  50% { d: path('M200,250 Q220,300 250,350'); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .title {
+    font-size: 2.5rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .role-select {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  #gameScreen {
+    grid-template-areas:
+      "gate"
+      "ritual"
+      "players"
+      "role";
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+  
+  .btn-large {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+  }
+  
+  .result-title {
+    font-size: 3rem;
+  }
+}

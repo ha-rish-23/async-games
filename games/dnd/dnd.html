@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D&D Night - Stranger Things</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div id="setupScreen" class="screen active">
+    <div class="title">D&D NIGHT</div>
+    <div class="subtitle">Mike's Basement Campaign</div>
+    
+    <div class="role-select">
+      <button id="dmBtn" class="btn btn-large">BECOME DUNGEON MASTER</button>
+      <button id="playerBtn" class="btn btn-large">JOIN AS PLAYER</button>
+    </div>
+    
+    <!-- DM Setup -->
+    <div id="dmSetup" style="display: none;">
+      <div class="setup-panel">
+        <h2>DUNGEON MASTER SETUP</h2>
+        <button id="createCampaignBtn" class="btn">CREATE CAMPAIGN</button>
+        
+        <div id="dmWaitingArea" style="display: none;">
+          <div class="room-code-display">
+            <div class="label">CAMPAIGN CODE</div>
+            <div id="roomCodeDisplay" class="code">----</div>
+          </div>
+          
+          <div class="players-waiting">
+            <div class="label">PARTY MEMBERS</div>
+            <div id="playersList" class="players-list"></div>
+          </div>
+          
+          <button id="startAdventureBtn" class="btn btn-large" style="display: none;">BEGIN ADVENTURE</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Player Setup -->
+    <div id="playerSetup" style="display: none;">
+      <div class="setup-panel">
+        <h2>JOIN CAMPAIGN</h2>
+        <input type="text" id="playerNameInput" placeholder="Your Character Name" maxlength="20">
+        <input type="text" id="campaignCodeInput" maxlength="4" placeholder="Campaign Code">
+        <button id="joinCampaignBtn" class="btn">JOIN PARTY</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- DM Screen -->
+  <div id="dmScreen" style="display: none;">
+    <div class="dm-header">
+      <h1>DUNGEON MASTER CONTROL</h1>
+      <div id="dmRoomCode" class="room-code-small">CODE: ----</div>
+    </div>
+    
+    <div class="dm-layout">
+      <!-- Scenario Builder -->
+      <div class="scenario-panel">
+        <h2>SCENARIO BUILDER</h2>
+        
+        <div class="scenario-form">
+          <label>Scenario Type:</label>
+          <select id="scenarioType">
+            <option value="combat">Combat Encounter</option>
+            <option value="puzzle">Puzzle Challenge</option>
+            <option value="skill">Skill Check</option>
+            <option value="social">Social Interaction</option>
+          </select>
+          
+          <label>Description:</label>
+          <textarea id="scenarioDesc" rows="4" placeholder="Describe what the players encounter..."></textarea>
+          
+          <label>Difficulty (DC):</label>
+          <input type="number" id="scenarioDC" min="5" max="30" value="15">
+          
+          <div class="btn-group">
+            <button id="sendScenarioBtn" class="btn">SEND TO PLAYERS</button>
+            <button id="revealBtn" class="btn btn-secondary">REVEAL OUTCOME</button>
+          </div>
+        </div>
+        
+        <div class="quick-scenarios">
+          <h3>Quick Scenarios</h3>
+          <button class="quick-btn" data-scenario="demogorgon">Demogorgon Attack</button>
+          <button class="quick-btn" data-scenario="trap">Hidden Trap</button>
+          <button class="quick-btn" data-scenario="treasure">Treasure Chest</button>
+          <button class="quick-btn" data-scenario="npc">Mysterious NPC</button>
+        </div>
+      </div>
+      
+      <!-- Player Monitor -->
+      <div class="monitor-panel">
+        <h2>PARTY STATUS</h2>
+        <div id="partyMonitor" class="party-monitor">
+          <!-- Dynamic player cards -->
+        </div>
+      </div>
+      
+      <!-- Action Log -->
+      <div class="log-panel">
+        <h2>ADVENTURE LOG</h2>
+        <div id="actionLog" class="action-log">
+          <div class="log-entry dm">Campaign started. May the dice be in your favor...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Player Screen -->
+  <div id="playerScreen" style="display: none;">
+    <div class="player-header">
+      <h1 id="playerCharName">ADVENTURER</h1>
+      <div class="header-info">
+        <div id="playerCampaignCode" class="room-code-small">CODE: ----</div>
+        <div id="playerHP" class="hp-display">HP: 20/20</div>
+      </div>
+    </div>
+    
+    <div class="player-layout">
+      <!-- Current Scenario -->
+      <div class="scenario-display">
+        <h2>CURRENT CHALLENGE</h2>
+        <div id="currentScenario" class="scenario-card">
+          <div class="scenario-type">Waiting for DM...</div>
+          <div class="scenario-description">The Dungeon Master is preparing the next encounter.</div>
+          <div class="scenario-dc">DC: --</div>
+        </div>
+        
+        <div id="outcomeDisplay" class="outcome-display" style="display: none;">
+          <div class="outcome-title">OUTCOME</div>
+          <div id="outcomeText" class="outcome-text"></div>
+        </div>
+      </div>
+      
+      <!-- Dice Roller -->
+      <div class="dice-panel">
+        <h2>DICE ROLLER</h2>
+        
+        <div class="dice-grid">
+          <button class="dice-btn" data-sides="4">d4</button>
+          <button class="dice-btn" data-sides="6">d6</button>
+          <button class="dice-btn" data-sides="8">d8</button>
+          <button class="dice-btn" data-sides="10">d10</button>
+          <button class="dice-btn" data-sides="12">d12</button>
+          <button class="dice-btn dice-d20" data-sides="20">d20</button>
+        </div>
+        
+        <div id="rollResult" class="roll-result">
+          <div class="result-value">--</div>
+          <div class="result-label">Roll the dice!</div>
+        </div>
+        
+        <div class="modifier-controls">
+          <label>Modifier:</label>
+          <input type="number" id="modifierInput" value="0" min="-10" max="10">
+          <button id="resetModifierBtn" class="btn-small">Reset</button>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="action-panel">
+        <h2>ACTIONS</h2>
+        <div class="action-buttons">
+          <button id="attackBtn" class="action-btn">⚔️ ATTACK</button>
+          <button id="defendBtn" class="action-btn">🛡️ DEFEND</button>
+          <button id="helpBtn" class="action-btn">🤝 HELP</button>
+          <button id="searchBtn" class="action-btn">🔍 SEARCH</button>
+        </div>
+      </div>
+      
+      <!-- Player Log -->
+      <div class="player-log-panel">
+        <h2>YOUR STORY</h2>
+        <div id="playerLog" class="player-log">
+          <div class="log-entry">You enter the adventure...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="game.js"></script>
+</body>
+</html>

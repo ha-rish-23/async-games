@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gate Closing Ritual - Stranger Things</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div id="setupScreen" class="screen active">
+    <div class="title">GATE CLOSING RITUAL</div>
+    <div class="subtitle">2-4 Players Required</div>
+    
+    <div class="role-select">
+      <button id="hostBtn" class="btn btn-large">CREATE RITUAL</button>
+      <button id="joinBtn" class="btn btn-large">JOIN RITUAL</button>
+    </div>
+    
+    <!-- Host Setup -->
+    <div id="hostSetup" style="display: none;">
+      <div class="setup-panel">
+        <div class="player-count-select">
+          <label>Number of Players:</label>
+          <div class="btn-group">
+            <button class="player-count-btn" data-count="2">2</button>
+            <button class="player-count-btn" data-count="3">3</button>
+            <button class="player-count-btn active" data-count="4">4</button>
+          </div>
+        </div>
+        
+        <button id="createRoomBtn" class="btn">START RITUAL</button>
+        
+        <div id="waitingArea" style="display: none;">
+          <div class="room-code-display">
+            <div class="label">ROOM CODE</div>
+            <div id="roomCodeDisplay" class="code">----</div>
+          </div>
+          
+          <div class="players-waiting">
+            <div class="label">WAITING FOR PARTICIPANTS...</div>
+            <div id="playersList" class="players-list"></div>
+          </div>
+          
+          <button id="startGameBtn" class="btn btn-large" style="display: none;">BEGIN RITUAL</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Join Setup -->
+    <div id="joinSetup" style="display: none;">
+      <div class="setup-panel">
+        <label for="roomCodeInput">ENTER ROOM CODE</label>
+        <input type="text" id="roomCodeInput" maxlength="4" placeholder="XXXX">
+        <button id="joinRoomBtn" class="btn">JOIN RITUAL</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Game Screen -->
+  <div id="gameScreen" style="display: none;">
+    <!-- Gate Visual -->
+    <div class="gate-container">
+      <svg id="gateVisual" viewBox="0 0 400 500">
+        <!-- Gate Outline -->
+        <ellipse id="gateOuter" cx="200" cy="250" rx="150" ry="180" class="gate-outer"/>
+        <ellipse id="gateInner" cx="200" cy="250" rx="120" ry="150" class="gate-inner"/>
+        
+        <!-- Pulsing Core -->
+        <ellipse id="gateCore" cx="200" cy="250" rx="80" ry="100" class="gate-core"/>
+        
+        <!-- Tentacles (generated dynamically) -->
+        <g id="tentacles"></g>
+        
+        <!-- Health Bars -->
+        <rect id="gateHealthBg" x="100" y="460" width="200" height="20" class="health-bg"/>
+        <rect id="gateHealth" x="100" y="460" width="200" height="20" class="health-bar"/>
+      </svg>
+      
+      <div id="gateStatus" class="gate-status">GATE INTEGRITY: 100%</div>
+    </div>
+    
+    <!-- Role Panel -->
+    <div id="rolePanel" class="role-panel">
+      <div class="role-header">
+        <div id="roleName" class="role-name">LOADING...</div>
+        <div id="roleDescription" class="role-description"></div>
+      </div>
+      
+      <div id="roleAction" class="role-action">
+        <!-- Dynamic action button/interface based on role -->
+      </div>
+      
+      <div id="cooldownIndicator" class="cooldown-indicator" style="display: none;">
+        <div class="cooldown-bar"></div>
+        <div class="cooldown-text">RECHARGING...</div>
+      </div>
+    </div>
+    
+    <!-- Ritual Status -->
+    <div id="ritualStatus" class="ritual-status">
+      <div class="status-item">
+        <span class="label">PHASE:</span>
+        <span id="phaseDisplay">PREPARING</span>
+      </div>
+      <div class="status-item">
+        <span class="label">SYNC:</span>
+        <span id="syncDisplay">0%</span>
+      </div>
+      <div class="status-item">
+        <span class="label">POWER:</span>
+        <span id="powerDisplay">0%</span>
+      </div>
+    </div>
+    
+    <!-- Players Status -->
+    <div id="playersStatus" class="players-status">
+      <div class="label">RITUAL PARTICIPANTS</div>
+      <div id="playersGrid" class="players-grid">
+        <!-- Dynamic player status cards -->
+      </div>
+    </div>
+    
+    <!-- Victory/Failure Screen -->
+    <div id="resultScreen" class="result-screen" style="display: none;">
+      <div id="resultTitle" class="result-title">GATE CLOSED</div>
+      <div id="resultMessage" class="result-message"></div>
+      <button id="playAgainBtn" class="btn btn-large">PERFORM ANOTHER RITUAL</button>
+    </div>
+  </div>
+  
+  <script src="game.js"></script>
+</body>
+</html>

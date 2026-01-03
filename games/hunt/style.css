@@ -1,0 +1,556 @@
+/* Demogorgon Hunt - Stranger Things Dark Forest */
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Creepster&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+
+:root {
+  --st-red: #e50914;
+  --upside-down-dark: #0a0614;
+  --upside-down-purple: #1a0f2e;
+  --hunter-orange: #ff6b35;
+  --hider-cyan: #00d4ff;
+  --detection-red: #ff0040;
+  --safe-green: #00ff88;
+  --warning-yellow: #ffeb3b;
+  --fog-gray: #2a2a3e;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier Prime', monospace;
+  background: radial-gradient(circle at center, var(--upside-down-purple) 0%, var(--upside-down-dark) 100%);
+  color: #fff;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Animated fog */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(42, 42, 62, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(42, 42, 62, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 50% 30%, rgba(42, 42, 62, 0.3) 0%, transparent 40%);
+  animation: fogDrift 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes fogDrift {
+  0%, 100% { transform: translateX(0) translateY(0); opacity: 0.5; }
+  50% { transform: translateX(30px) translateY(-20px); opacity: 0.3; }
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Title */
+.title {
+  font-family: 'Creepster', cursive;
+  font-size: 5rem;
+  color: var(--st-red);
+  text-shadow: 
+    0 0 20px var(--st-red),
+    0 0 40px var(--st-red),
+    0 0 60px var(--st-red),
+    5px 5px 0 #000;
+  margin-bottom: 1rem;
+  letter-spacing: 5px;
+  animation: titleFlicker 3s ease-in-out infinite;
+}
+
+@keyframes titleFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+  75% { opacity: 1; }
+  77% { opacity: 0.9; }
+  79% { opacity: 1; }
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: #ccc;
+  margin-bottom: 3rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(135deg, var(--st-red) 0%, #a00710 100%);
+  color: white;
+  border: 3px solid #fff;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-family: 'Courier Prime', monospace;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 20px rgba(229, 9, 20, 0.5);
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(229, 9, 20, 0.8);
+}
+
+.btn-large {
+  font-size: 1.5rem;
+  padding: 1.2rem 3rem;
+}
+
+.role-select {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Setup Panel */
+.setup-panel {
+  background: rgba(10, 6, 20, 0.95);
+  border: 3px solid var(--st-red);
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 0 50px rgba(229, 9, 20, 0.5);
+}
+
+.setup-panel h2 {
+  font-family: 'Creepster', cursive;
+  color: var(--st-red);
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+  text-shadow: 0 0 20px var(--st-red);
+}
+
+.setup-panel input {
+  width: 100%;
+  padding: 1rem;
+  font-size: 2rem;
+  text-align: center;
+  background: #000;
+  color: #fff;
+  border: 3px solid var(--st-red);
+  margin-bottom: 1.5rem;
+  font-family: 'Courier Prime', monospace;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+}
+
+/* Role Cards */
+.role-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.role-card {
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid #555;
+  padding: 2rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: center;
+}
+
+.role-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+}
+
+.role-card.selected {
+  border-width: 4px;
+  box-shadow: 0 0 30px currentColor;
+}
+
+.hunter-card {
+  border-color: var(--hunter-orange);
+}
+
+.hunter-card.selected {
+  background: rgba(255, 107, 53, 0.2);
+  border-color: var(--hunter-orange);
+}
+
+.hider-card {
+  border-color: var(--hider-cyan);
+}
+
+.hider-card.selected {
+  background: rgba(0, 212, 255, 0.2);
+  border-color: var(--hider-cyan);
+}
+
+.role-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.role-title {
+  font-family: 'Creepster', cursive;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  letter-spacing: 2px;
+}
+
+.hunter-card .role-title {
+  color: var(--hunter-orange);
+}
+
+.hider-card .role-title {
+  color: var(--hider-cyan);
+}
+
+.role-desc {
+  font-size: 1rem;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.role-choice {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  border-left: 4px solid var(--st-red);
+}
+
+.room-code-display {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--st-red);
+}
+
+.room-code-display .label {
+  font-size: 1rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.room-code-display .code {
+  font-size: 3rem;
+  color: var(--st-red);
+  font-weight: bold;
+  letter-spacing: 15px;
+  text-shadow: 0 0 20px var(--st-red);
+}
+
+.waiting-msg {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ccc;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Game Screen */
+.game-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* HUD */
+.hud {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  right: 2rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  z-index: 10;
+}
+
+.hud-item {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid #555;
+  padding: 1rem 1.5rem;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hud-item .label {
+  font-size: 0.8rem;
+  color: #888;
+  letter-spacing: 1px;
+}
+
+.hud-item .value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.hunter-text {
+  color: var(--hunter-orange);
+  text-shadow: 0 0 10px var(--hunter-orange);
+}
+
+.hider-text {
+  color: var(--hider-cyan);
+  text-shadow: 0 0 10px var(--hider-cyan);
+}
+
+.status-safe {
+  color: var(--safe-green);
+}
+
+.status-danger {
+  color: var(--detection-red);
+  animation: dangerPulse 1s ease-in-out infinite;
+}
+
+@keyframes dangerPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Canvas */
+canvas {
+  border: 4px solid var(--st-red);
+  background: var(--upside-down-dark);
+  box-shadow: 0 0 50px rgba(229, 9, 20, 0.5);
+  margin: 2rem 0;
+}
+
+/* Controls */
+.controls {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  z-index: 10;
+}
+
+.control-hint {
+  font-size: 1rem;
+  color: #888;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.sonar-btn {
+  background: linear-gradient(135deg, var(--hunter-orange) 0%, #d84315 100%);
+  color: white;
+  border: 3px solid #fff;
+  padding: 1.5rem 3rem;
+  font-size: 1.3rem;
+  font-family: 'Courier Prime', monospace;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 0 30px rgba(255, 107, 53, 0.6);
+  transition: all 0.3s;
+}
+
+.sonar-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 0 50px rgba(255, 107, 53, 0.9);
+}
+
+.sonar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Detection Meter */
+.detection-meter {
+  position: absolute;
+  top: 10rem;
+  right: 2rem;
+  width: 200px;
+  z-index: 10;
+}
+
+.meter-label {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.meter-bar {
+  height: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--hunter-orange);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--safe-green) 0%, var(--warning-yellow) 50%, var(--detection-red) 100%);
+  width: 0%;
+  transition: width 0.3s;
+}
+
+/* Stealth Indicator */
+.stealth-indicator {
+  width: 300px;
+  text-align: center;
+}
+
+.indicator-label {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 0.5rem;
+  letter-spacing: 1px;
+}
+
+.indicator-bar {
+  height: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--hider-cyan);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.indicator-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--safe-green) 0%, var(--warning-yellow) 50%, var(--detection-red) 100%);
+  width: 0%;
+  transition: width 0.3s;
+}
+
+/* Danger Warning */
+.danger-warning {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 0, 64, 0.9);
+  border: 4px solid #fff;
+  padding: 2rem 4rem;
+  border-radius: 10px;
+  z-index: 20;
+  animation: warningPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.warning-text {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 0 20px #000;
+  letter-spacing: 3px;
+}
+
+/* Result Screen */
+.result-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.result-title {
+  font-family: 'Creepster', cursive;
+  font-size: 5rem;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 30px currentColor;
+}
+
+.result-title.hunter-win {
+  color: var(--hunter-orange);
+}
+
+.result-title.hider-win {
+  color: var(--hider-cyan);
+}
+
+.result-message {
+  font-size: 1.5rem;
+  color: #ccc;
+  margin-bottom: 3rem;
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.8;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .title {
+    font-size: 3rem;
+  }
+  
+  .role-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  canvas {
+    width: 100%;
+    height: auto;
+  }
+  
+  .hud {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .detection-meter {
+    top: auto;
+    bottom: 10rem;
+    right: 1rem;
+    width: 150px;
+  }
+}

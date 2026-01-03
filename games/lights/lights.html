@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Christmas Lights Cipher - Stranger Things</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="setupScreen" class="screen active">
+    <div class="container">
+      <h1 class="game-title">CHRISTMAS LIGHTS</h1>
+      <p class="subtitle">The Alphabet Wall</p>
+      <div class="subtitle-quote">"Right here. WILL. That's it. Talk to me."</div>
+      
+      <div class="role-select">
+        <button id="hostBtn" class="role-btn sender">Be the Sender</button>
+        <button id="joinBtn" class="role-btn receiver">Be the Receiver</button>
+      </div>
+      
+      <div id="hostSetup" style="display: none;">
+        <h2>Sender</h2>
+        <p>Click the alphabet lights to send your message.</p>
+        <button id="createRoomBtn" class="action-btn">Create Room</button>
+        <div id="roomCodeDisplay" class="room-code"></div>
+        <p id="waitingMsg" style="display: none;">Waiting for receiver...</p>
+      </div>
+      
+      <div id="joinSetup" style="display: none;">
+        <h2>Receiver</h2>
+        <p>Watch the lights blink and decode the message.</p>
+        <input type="text" id="roomCodeInput" placeholder="Enter 4-letter code" maxlength="4">
+        <button id="joinRoomBtn" class="action-btn">Join Room</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="gameScreen" style="display: none;">
+    <div class="wall-container">
+      <div class="wall-header">
+        <h2 class="wall-title">THE ALPHABET WALL</h2>
+        <div class="role-indicator" id="roleIndicator">SENDER</div>
+      </div>
+      
+      <!-- Alphabet Wall with Lights -->
+      <div class="alphabet-wall">
+        <div class="lights-grid" id="lightsGrid">
+          <!-- A-Z lights will be generated here -->
+        </div>
+      </div>
+      
+      <!-- Message Display -->
+      <div class="message-panel">
+        <div class="panel-label">MESSAGE:</div>
+        <div class="message-display" id="messageDisplay"></div>
+      </div>
+      
+      <!-- Sender Controls -->
+      <div id="senderControls" class="controls-panel" style="display: none;">
+        <button id="clearBtn" class="control-btn">Clear Message</button>
+        <button id="deleteBtn" class="control-btn">Delete Last</button>
+      </div>
+      
+      <!-- Receiver Display -->
+      <div id="receiverInfo" class="info-panel" style="display: none;">
+        <p>Watch the lights carefully. They will blink one at a time to spell out the message.</p>
+        <div class="blink-status" id="blinkStatus">Waiting...</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+  <script src="../../js/network.js"></script>
+  <script src="../../js/audio-manager.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

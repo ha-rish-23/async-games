@@ -1,0 +1,722 @@
+/* D&D Night - Stranger Things Basement Aesthetic */
+
+/* Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+:root {
+  --st-red: #e50914;
+  --basement-brown: #3e2723;
+  --table-cloth: #8b0000;
+  --dice-white: #f5f5f5;
+  --parchment: #f4e8d0;
+  --ink-black: #1a1a1a;
+  --gold: #ffd700;
+  --success: #4caf50;
+  --fail: #f44336;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Courier Prime', monospace;
+  background: linear-gradient(180deg, #2c1810 0%, var(--basement-brown) 50%, #1e120c 100%);
+  color: #fff;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Wood texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.1) 2px,
+      rgba(0,0,0,0.1) 4px
+    );
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Checkered tablecloth pattern */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: 
+    repeating-conic-gradient(
+      var(--table-cloth) 0% 25%,
+      #600 0% 50%
+    ) 0 0 / 40px 40px;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* Title */
+.title {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 5rem;
+  color: var(--gold);
+  text-shadow: 
+    3px 3px 0 var(--st-red),
+    6px 6px 10px #000;
+  margin-bottom: 1rem;
+  letter-spacing: 5px;
+}
+
+.subtitle {
+  font-family: 'Special Elite', monospace;
+  font-size: 1.3rem;
+  color: #ccc;
+  margin-bottom: 3rem;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+/* Buttons */
+.btn {
+  background: linear-gradient(135deg, var(--table-cloth) 0%, #600 100%);
+  color: var(--dice-white);
+  border: 3px solid var(--gold);
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-family: 'MedievalSharp', cursive;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-large {
+  font-size: 1.5rem;
+  padding: 1.2rem 3rem;
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #555 0%, #333 100%);
+  border-color: #888;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.role-select {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Setup Panel */
+.setup-panel {
+  background: rgba(62, 39, 35, 0.95);
+  border: 4px solid var(--gold);
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+}
+
+.setup-panel h2 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px #000;
+}
+
+.setup-panel input,
+.setup-panel textarea,
+.setup-panel select {
+  width: 100%;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 2px solid var(--gold);
+  font-family: 'Courier Prime', monospace;
+  font-size: 1rem;
+}
+
+.setup-panel input[type="text"] {
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-size: 1.2rem;
+}
+
+.room-code-display {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--gold);
+}
+
+.room-code-display .label {
+  font-size: 1rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+  letter-spacing: 2px;
+}
+
+.room-code-display .code {
+  font-size: 3rem;
+  color: var(--gold);
+  font-weight: bold;
+  letter-spacing: 15px;
+  text-shadow: 0 0 20px var(--gold);
+}
+
+.players-waiting {
+  margin: 2rem 0;
+}
+
+.players-waiting .label {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1.2rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.players-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.player-item {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 0.8rem;
+  border-left: 4px solid var(--gold);
+  color: #fff;
+  font-family: 'Special Elite', monospace;
+}
+
+/* DM Screen */
+#dmScreen {
+  position: relative;
+  z-index: 2;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.dm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--st-red);
+  border-radius: 10px;
+}
+
+.dm-header h1 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--st-red);
+  text-shadow: 2px 2px 4px #000;
+}
+
+.room-code-small {
+  font-size: 1.2rem;
+  color: var(--gold);
+  font-weight: bold;
+  letter-spacing: 3px;
+}
+
+.dm-layout {
+  display: grid;
+  grid-template-areas:
+    "scenario monitor"
+    "log log";
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 2rem;
+}
+
+.scenario-panel {
+  grid-area: scenario;
+  background: rgba(62, 39, 35, 0.95);
+  border: 3px solid var(--gold);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.scenario-panel h2,
+.monitor-panel h2,
+.log-panel h2 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px #000;
+}
+
+.scenario-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scenario-form label {
+  color: #ccc;
+  font-weight: bold;
+}
+
+.btn-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.quick-scenarios {
+  margin-top: 2rem;
+}
+
+.quick-scenarios h3 {
+  color: var(--gold);
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.quick-btn {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.8rem;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 2px solid #666;
+  cursor: pointer;
+  font-family: 'Courier Prime', monospace;
+  transition: all 0.3s;
+}
+
+.quick-btn:hover {
+  border-color: var(--gold);
+  background: rgba(255, 215, 0, 0.2);
+}
+
+.monitor-panel {
+  grid-area: monitor;
+  background: rgba(62, 39, 35, 0.95);
+  border: 3px solid var(--gold);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.party-monitor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.party-card {
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1rem;
+  border-left: 4px solid var(--gold);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.party-card .player-name {
+  font-weight: bold;
+  color: #fff;
+}
+
+.party-card .player-status {
+  color: var(--success);
+  font-size: 0.9rem;
+}
+
+.log-panel {
+  grid-area: log;
+  background: rgba(62, 39, 35, 0.95);
+  border: 3px solid var(--gold);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.action-log {
+  max-height: 300px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1rem;
+  border: 2px solid #444;
+}
+
+.log-entry {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid #666;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.log-entry.dm {
+  border-left-color: var(--st-red);
+  color: #ffcccc;
+}
+
+.log-entry.player {
+  border-left-color: var(--gold);
+  color: #ffffcc;
+}
+
+.log-entry.roll {
+  border-left-color: var(--success);
+  color: #ccffcc;
+}
+
+/* Player Screen */
+#playerScreen {
+  position: relative;
+  z-index: 2;
+  padding: 2rem;
+  min-height: 100vh;
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--gold);
+  border-radius: 10px;
+}
+
+.player-header h1 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--gold);
+  text-shadow: 2px 2px 4px #000;
+}
+
+.header-info {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.hp-display {
+  font-size: 1.3rem;
+  color: var(--success);
+  font-weight: bold;
+}
+
+.player-layout {
+  display: grid;
+  grid-template-areas:
+    "scenario dice"
+    "scenario action"
+    "log log";
+  grid-template-columns: 1.5fr 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 2rem;
+}
+
+.scenario-display {
+  grid-area: scenario;
+  background: rgba(244, 232, 208, 0.95);
+  border: 4px solid var(--ink-black);
+  padding: 2rem;
+  border-radius: 5px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+}
+
+.scenario-display h2 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--ink-black);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.scenario-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1.5rem;
+  border: 3px solid var(--ink-black);
+  color: var(--ink-black);
+  font-family: 'Special Elite', monospace;
+}
+
+.scenario-type {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--st-red);
+  text-transform: uppercase;
+}
+
+.scenario-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.scenario-dc {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--gold);
+  text-align: right;
+}
+
+.outcome-display {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--gold);
+  border-radius: 5px;
+}
+
+.outcome-title {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--gold);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.outcome-text {
+  color: #fff;
+  font-size: 1.1rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* Dice Panel */
+.dice-panel {
+  grid-area: dice;
+  background: rgba(62, 39, 35, 0.95);
+  border: 3px solid var(--dice-white);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.dice-panel h2 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--dice-white);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.dice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.dice-btn {
+  background: linear-gradient(135deg, var(--dice-white) 0%, #ddd 100%);
+  color: var(--ink-black);
+  border: 3px solid var(--ink-black);
+  padding: 1.2rem;
+  font-size: 1.5rem;
+  font-family: 'MedievalSharp', cursive;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dice-btn:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+.dice-btn:active {
+  animation: diceRoll 0.5s;
+}
+
+@keyframes diceRoll {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(15deg); }
+  50% { transform: rotate(-15deg); }
+  75% { transform: rotate(10deg); }
+}
+
+.dice-d20 {
+  grid-column: span 3;
+  background: linear-gradient(135deg, var(--gold) 0%, #ffa500 100%);
+  font-size: 2rem;
+  border-color: var(--st-red);
+}
+
+.roll-result {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 3px solid var(--gold);
+  margin-bottom: 1rem;
+}
+
+.result-value {
+  font-size: 3rem;
+  color: var(--gold);
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--gold);
+}
+
+.result-label {
+  font-size: 1rem;
+  color: #ccc;
+  margin-top: 0.5rem;
+}
+
+.modifier-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.modifier-controls label {
+  color: #ccc;
+}
+
+.modifier-controls input {
+  width: 60px;
+  padding: 0.5rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 2px solid #666;
+  font-family: 'Courier Prime', monospace;
+}
+
+/* Action Panel */
+.action-panel {
+  grid-area: action;
+  background: rgba(62, 39, 35, 0.95);
+  border: 3px solid var(--st-red);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.action-panel h2 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--st-red);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.action-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.action-btn {
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 2px solid var(--gold);
+  padding: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Special Elite', monospace;
+}
+
+.action-btn:hover {
+  background: rgba(255, 215, 0, 0.3);
+  transform: scale(1.05);
+}
+
+/* Player Log */
+.player-log-panel {
+  grid-area: log;
+  background: rgba(62, 39, 35, 0.95);
+  border: 3px solid var(--gold);
+  padding: 1.5rem;
+  border-radius: 10px;
+}
+
+.player-log-panel h2 {
+  font-family: 'MedievalSharp', cursive;
+  color: var(--gold);
+  margin-bottom: 1rem;
+}
+
+.player-log {
+  max-height: 250px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1rem;
+  border: 2px solid #444;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .title {
+    font-size: 3rem;
+  }
+  
+  .role-select {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .dm-layout,
+  .player-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "scenario"
+      "monitor"
+      "log";
+  }
+  
+  .player-layout {
+    grid-template-areas:
+      "scenario"
+      "dice"
+      "action"
+      "log";
+  }
+  
+  .dice-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .dice-d20 {
+    grid-column: span 2;
+  }
+}
