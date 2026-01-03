@@ -55,15 +55,16 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
     return;
   }
   
+  console.log('🔗 Attempting to join room:', roomCode);
+  
   try {
-    nm.onData((data) => onDataReceived(data));
     await nm.joinRoom(roomCode);
-    
-    // Wait a moment for connection to stabilize
-    setTimeout(() => {
-      onPeerConnected();
-    }, 500);
+    console.log('✅ Join successful, setting up data handler');
+    nm.onData((data) => onDataReceived(data));
+    console.log('🎮 Starting game');
+    onPeerConnected();
   } catch (err) {
+    console.error('❌ Join failed:', err);
     alert('Failed to join room: ' + err.message);
   }
 });

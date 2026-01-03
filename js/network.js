@@ -155,7 +155,7 @@
             if(!this.conn || !this.conn.open){
               reject(new Error('Connection timeout - host may not exist or be offline'));
             }
-          }, 15000);
+          }, 20000); // Increased from 15s to 20s
         });
         
         this.peer.on('error', err=> {
