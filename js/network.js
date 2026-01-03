@@ -58,6 +58,10 @@
         const hostId = 'doubleblind-'+code.toLowerCase();
         
         const config = {
+          host: '0.peerjs.com',
+          port: 443,
+          path: '/',
+          secure: true,
           debug: 2,
           config: {
             iceServers: [
@@ -130,6 +134,10 @@
         const hostId = 'doubleblind-'+code.toLowerCase();
         
         const config = {
+          host: '0.peerjs.com',
+          port: 443,
+          path: '/',
+          secure: true,
           debug: 2,
           config: {
             iceServers: [
