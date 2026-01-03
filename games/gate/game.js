@@ -101,11 +101,13 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   }
   
   try {
-    await nm.joinRoom(roomCode);
     nm.onData((data) => onDataReceived(data));
+    await nm.joinRoom(roomCode);
     
-    // Send join notification to host
-    nm.sendData('playerJoined', { id: nm.peer.id, name: 'Player' + Math.floor(Math.random() * 1000) });
+    // Send join notification to host after a brief delay
+    setTimeout(() => {
+      nm.sendData('playerJoined', { id: nm.peer.id, name: 'Player' + Math.floor(Math.random() * 1000) });
+    }, 500);
     
   } catch (err) {
     alert('Failed to join room: ' + err.message);

@@ -108,8 +108,8 @@ document.getElementById('joinRoomBtn').addEventListener('click', async () => {
   }
   
   try {
-    await nm.joinRoom(roomCode);
     nm.onData((data) => onDataReceived(data));
+    await nm.joinRoom(roomCode);
   } catch (err) {
     alert('Failed to join room: ' + err.message);
   }

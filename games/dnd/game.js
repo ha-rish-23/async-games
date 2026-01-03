@@ -101,14 +101,17 @@ document.getElementById('joinCampaignBtn').addEventListener('click', async () =>
   gameState.characterName = name;
   
   try {
-    await nm.joinRoom(code);
     nm.onData((data) => onDataReceived(data));
+    await nm.joinRoom(roomCode);
     
-    nm.sendData('playerJoined', { 
-      name: name,
-      hp: gameState.playerHP,
-      maxHP: gameState.maxHP
-    });
+    // Send player info after connection stabilizes
+    setTimeout(() => {
+      nm.sendData('playerJoined', { 
+        name: name,
+        hp: gameState.playerHP,
+        maxHP: gameState.maxHP
+      });
+    }, 500);
     
   } catch (err) {
     alert('Failed to join campaign: ' + err.message);
